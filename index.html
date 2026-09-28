@@ -222,8 +222,7 @@ function renderResumo() {
   const total = viaturas.length;
   const operantes = viaturas.filter(v => v.status === 'Operante').length;
   const baixadas = viaturas.filter(v => v.status === 'Baixada').length;
-  // Conta viaturas operantes sem contato
-  const semContato = viaturas.filter(v => v.status === 'Operante' && (!v.contato || v.contato.trim() === '')).length;
+  const semContato = viaturas.filter(v => v.status === 'Operante' && (!v.contato || String(v.contato).trim() === '')).length;
 
   document.getElementById('summaryCards').innerHTML = `
     <div class="summary-card total ${filtroStatusAtivo === 'Total' ? 'active' : ''}" onclick="mudarFiltroStatus('Total')">
@@ -262,11 +261,11 @@ function renderBlocos() {
   if (termoBusca) {
     const t = termoBusca.toLowerCase();
     filtradas = filtradas.filter(v => 
-      (v.prefixo || '').toLowerCase().includes(t) || 
-      (v.condutor || '').toLowerCase().includes(t) || 
-      (v.unidade || '').toLowerCase().includes(t) ||
-      (v.placa || '').toLowerCase().includes(t) ||
-      (v.contato || '').toLowerCase().includes(t)
+      String(v.prefixo || '').toLowerCase().includes(t) || 
+      String(v.condutor || '').toLowerCase().includes(t) || 
+      String(v.unidade || '').toLowerCase().includes(t) ||
+      String(v.placa || '').toLowerCase().includes(t) ||
+      String(v.contato || '').toLowerCase().includes(t)
     );
   }
 
@@ -279,7 +278,7 @@ function renderBlocos() {
   } else if (filtroStatusAtivo === 'Baixada') {
     filtradas = filtradas.filter(v => v.status === 'Baixada');
   } else if (filtroStatusAtivo === 'SemContato') {
-    filtradas = filtradas.filter(v => v.status === 'Operante' && (!v.contato || v.contato.trim() === ''));
+    filtradas = filtradas.filter(v => v.status === 'Operante' && (!v.contato || String(v.contato).trim() === ''));
   }
 
   const container = document.getElementById('blocksContainer');
@@ -321,13 +320,12 @@ function renderBlocos() {
 
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
-  const semContato = !v.contato || v.contato.trim() === '';
+  const semContato = !v.contato || String(v.contato).trim() === '';
   
   const propBadge = v.propriedade === 'Locada' 
     ? `<span class="badge locada">Locada</span> ${v.empresa ? `<span style="font-size:11px;color:var(--text-dim);">(${v.empresa})</span>` : ''}`
     : `<span class="badge propria">Própria</span>`;
 
-  // Se estiver operante e sem contato, mostra um badge de alerta
   const contatoDisplay = semContato 
     ? (v.status === 'Operante' ? `<span class="badge sem-contato">⚠ Sem contato</span>` : `<span style="color:var(--text-faint);">—</span>`)
     : `<span style="color:var(--text);">${v.contato}</span>`;
@@ -400,11 +398,11 @@ function abrirModalNovo() {
   editandoPrefixoOriginal = null;
   modalTitle.innerText = 'Nova Viatura';
   modalFields.innerHTML = `
-    <label>Prefixo <input type="text" id="fPrefixo" placeholder="Ex: ABS-01"></label>
-    <label>Placa <input type="text" id="fPlaca" placeholder="Ex: ABC-1234"></label>
-    <label>Tipo <input type="text" id="fTipo" placeholder="Ex: ABS, UR, APC" list="listaTipos"></label>
+    <label>Prefixo <input type="text" id="fPrefixo" autocomplete="off" placeholder="Ex: ABS-01"></label>
+    <label>Placa <input type="text" id="fPlaca" autocomplete="off" placeholder="Ex: ABC-1234"></label>
+    <label>Tipo <input type="text" id="fTipo" autocomplete="off" placeholder="Ex: ABS, UR, APC" list="listaTipos"></label>
     <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
-    <label>Unidade <input type="text" id="fUnidade" placeholder="Ex: 1º GBM" list="listaUnidades"></label>
+    <label>Unidade <input type="text" id="fUnidade" autocomplete="off" placeholder="Ex: 1º GBM" list="listaUnidades"></label>
     <datalist id="listaUnidades">
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
@@ -412,12 +410,12 @@ function abrirModalNovo() {
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria">Própria</option><option value="Locada">Locada</option>
     </select></label>
-    <label id="labelEmpresa" style="display:none;">Empresa (Locada) <input type="text" id="fEmpresa" placeholder="Nome da empresa"></label>
-    <label>Cartão de Abastecimento <input type="text" id="fCartao" placeholder="Opcional"></label>
+    <label id="labelEmpresa" style="display:none;">Empresa (Locada) <input type="text" id="fEmpresa" autocomplete="off" placeholder="Nome da empresa"></label>
+    <label>Cartão de Abastecimento <input type="text" id="fCartao" autocomplete="off" placeholder="Opcional"></label>
     <label>Status <select id="fStatus"><option value="Operante">Operante</option><option value="Baixada">Baixada</option></select></label>
-    <label>Condutor <input type="text" id="fCondutor" placeholder="Nome do condutor"></label>
-    <label>Contato <input type="text" id="fContato" placeholder="Ex: (65) 99999-9999"></label>
-    <label>Observações <input type="text" id="fObs" placeholder="Opcional"></label>
+    <label>Condutor <input type="text" id="fCondutor" autocomplete="off" placeholder="Nome do condutor"></label>
+    <label>Contato <input type="text" id="fContato" autocomplete="off" placeholder="Ex: (65) 99999-9999"></label>
+    <label>Observações <input type="text" id="fObs" autocomplete="off" placeholder="Opcional"></label>
   `;
   modal.style.display = 'flex';
 }
@@ -427,11 +425,11 @@ function abrirModalEditar(index) {
   editandoPrefixoOriginal = v.prefixo;
   modalTitle.innerText = 'Editar Viatura';
   modalFields.innerHTML = `
-    <label>Prefixo <input type="text" id="fPrefixo" value="${v.prefixo}"></label>
-    <label>Placa <input type="text" id="fPlaca" value="${v.placa || ''}"></label>
-    <label>Tipo <input type="text" id="fTipo" value="${v.tipo}" list="listaTipos"></label>
+    <label>Prefixo <input type="text" id="fPrefixo" autocomplete="off" value="${v.prefixo}"></label>
+    <label>Placa <input type="text" id="fPlaca" autocomplete="off" value="${v.placa || ''}"></label>
+    <label>Tipo <input type="text" id="fTipo" autocomplete="off" value="${v.tipo}" list="listaTipos"></label>
     <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
-    <label>Unidade <input type="text" id="fUnidade" value="${v.unidade}" list="listaUnidades"></label>
+    <label>Unidade <input type="text" id="fUnidade" autocomplete="off" value="${v.unidade}" list="listaUnidades"></label>
     <datalist id="listaUnidades">
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
@@ -440,15 +438,15 @@ function abrirModalEditar(index) {
       <option value="Própria" ${v.propriedade === 'Própria' ? 'selected' : ''}>Própria</option>
       <option value="Locada" ${v.propriedade === 'Locada' ? 'selected' : ''}>Locada</option>
     </select></label>
-    <label id="labelEmpresa" style="${v.propriedade === 'Locada' ? 'display:flex;' : 'display:none;'}">Empresa (Locada) <input type="text" id="fEmpresa" value="${v.empresa || ''}" placeholder="Nome da empresa"></label>
-    <label>Cartão de Abastecimento <input type="text" id="fCartao" value="${v.cartao || ''}" placeholder="Opcional"></label>
+    <label id="labelEmpresa" style="${v.propriedade === 'Locada' ? 'display:flex;' : 'display:none;'}">Empresa (Locada) <input type="text" id="fEmpresa" autocomplete="off" value="${v.empresa || ''}" placeholder="Nome da empresa"></label>
+    <label>Cartão de Abastecimento <input type="text" id="fCartao" autocomplete="off" value="${v.cartao || ''}" placeholder="Opcional"></label>
     <label>Status <select id="fStatus">
       <option value="Operante" ${v.status === 'Operante' ? 'selected' : ''}>Operante</option>
       <option value="Baixada" ${v.status === 'Baixada' ? 'selected' : ''}>Baixada</option>
     </select></label>
-    <label>Condutor <input type="text" id="fCondutor" value="${v.condutor || ''}"></label>
-    <label>Contato <input type="text" id="fContato" value="${v.contato || ''}" placeholder="Ex: (65) 99999-9999"></label>
-    <label>Observações <input type="text" id="fObs" value="${v.obs || ''}"></label>
+    <label>Condutor <input type="text" id="fCondutor" autocomplete="off" value="${v.condutor || ''}"></label>
+    <label>Contato <input type="text" id="fContato" autocomplete="off" value="${v.contato || ''}" placeholder="Ex: (65) 99999-9999"></label>
+    <label>Observações <input type="text" id="fObs" autocomplete="off" value="${v.obs || ''}"></label>
   `;
   setTimeout(toggleEmpresa, 10);
   modal.style.display = 'flex';
