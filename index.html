@@ -37,19 +37,19 @@
   .summary-card.total::before{background:var(--amber);}
   .summary-card.operantes::before{background:var(--azul);}
   .summary-card.baixadas::before{background:var(--vermelho);}
-  .summary-card.supervisores::before{background:var(--roxo);}
+  .summary-card.semcontato::before{background:var(--roxo);}
   .summary-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;}
   .summary-card .value{font-family:'Rajdhani',sans-serif;font-size:34px;font-weight:700;line-height:1;}
   .summary-card.total .value{color:var(--amber);}
   .summary-card.operantes .value{color:var(--azul);}
   .summary-card.baixadas .value{color:var(--vermelho);}
-  .summary-card.supervisores .value{color:var(--roxo);}
+  .summary-card.semcontato .value{color:var(--roxo);}
   .summary-card:hover { background: var(--surface-2); transform: translateY(-2px); }
   .summary-card.active { background: var(--surface-2); border-color: var(--text-dim); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
   .summary-card.active.total { border-color: var(--amber); box-shadow: 0 0 15px rgba(232,169,58,0.2); }
   .summary-card.active.operantes { border-color: var(--azul); box-shadow: 0 0 15px rgba(0,171,251,0.2); }
   .summary-card.active.baixadas { border-color: var(--vermelho); box-shadow: 0 0 15px rgba(239,83,80,0.2); }
-  .summary-card.active.supervisores { border-color: var(--roxo); box-shadow: 0 0 15px rgba(177,140,255,0.2); }
+  .summary-card.active.semcontato { border-color: var(--roxo); box-shadow: 0 0 15px rgba(177,140,255,0.2); }
 
   /* TOOLBAR */
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -93,6 +93,7 @@
   .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
   .veh-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
   .veh-card.baixada{opacity:.92;}
+  .veh-card.sem-contato-alerta { border-color: rgba(177,140,255,.4); }
   
   .veh-header{display:flex;justify-content:space-between;align-items:center;}
   .veh-prefix{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;}
@@ -107,11 +108,9 @@
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--border);white-space:nowrap;}
   .badge.operante{background:rgba(0,171,251,.15);color:var(--azul);border-color:var(--azul);}
   .badge.baixada{background:rgba(239,83,80,.15);color:var(--vermelho);border-color:var(--vermelho);}
-  .badge.supervisor{background:rgba(177,140,255,.15);color:var(--roxo);border-color:var(--roxo);}
-  .badge.auxiliar{background:rgba(61,220,132,.15);color:var(--verde);border-color:var(--verde);}
-  .badge.apoio{background:rgba(232,169,58,.15);color:var(--amber);border-color:var(--amber);}
   .badge.propria{background:rgba(61,220,132,.1);color:var(--verde);border-color:var(--verde);}
   .badge.locada{background:rgba(232,169,58,.1);color:var(--amber);border-color:var(--amber);}
+  .badge.sem-contato{background:rgba(177,140,255,.15);color:var(--roxo);border-color:var(--roxo);}
 
   /* MODAL */
   .modal-overlay{position:fixed;inset:0;background:rgba(16,20,26,.85);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
@@ -157,7 +156,7 @@
   <div class="toolbar">
     <div class="tabs" id="tabsContainer"></div>
     <div class="right-tools">
-      <input type="text" id="search" placeholder="Buscar prefixo, condutor ou unidade">
+      <input type="text" id="search" placeholder="Buscar prefixo, condutor, placa...">
       <button class="btn" id="addBtn">+ Nova Viatura</button>
     </div>
   </div>
@@ -223,7 +222,8 @@ function renderResumo() {
   const total = viaturas.length;
   const operantes = viaturas.filter(v => v.status === 'Operante').length;
   const baixadas = viaturas.filter(v => v.status === 'Baixada').length;
-  const supervisores = viaturas.filter(v => v.funcao === 'Supervisor').length;
+  // Conta viaturas operantes sem contato
+  const semContato = viaturas.filter(v => v.status === 'Operante' && (!v.contato || v.contato.trim() === '')).length;
 
   document.getElementById('summaryCards').innerHTML = `
     <div class="summary-card total ${filtroStatusAtivo === 'Total' ? 'active' : ''}" onclick="mudarFiltroStatus('Total')">
@@ -235,8 +235,8 @@ function renderResumo() {
     <div class="summary-card baixadas ${filtroStatusAtivo === 'Baixada' ? 'active' : ''}" onclick="mudarFiltroStatus('Baixada')">
       <div class="label">Baixadas</div><div class="value">${baixadas}</div>
     </div>
-    <div class="summary-card supervisores ${filtroStatusAtivo === 'Supervisor' ? 'active' : ''}" onclick="mudarFiltroStatus('Supervisor')">
-      <div class="label">Supervisores</div><div class="value">${supervisores}</div>
+    <div class="summary-card semcontato ${filtroStatusAtivo === 'SemContato' ? 'active' : ''}" onclick="mudarFiltroStatus('SemContato')">
+      <div class="label">Sem Contato</div><div class="value">${semContato}</div>
     </div>
   `;
 }
@@ -265,7 +265,8 @@ function renderBlocos() {
       (v.prefixo || '').toLowerCase().includes(t) || 
       (v.condutor || '').toLowerCase().includes(t) || 
       (v.unidade || '').toLowerCase().includes(t) ||
-      (v.placa || '').toLowerCase().includes(t)
+      (v.placa || '').toLowerCase().includes(t) ||
+      (v.contato || '').toLowerCase().includes(t)
     );
   }
 
@@ -277,8 +278,8 @@ function renderBlocos() {
     filtradas = filtradas.filter(v => v.status === 'Operante');
   } else if (filtroStatusAtivo === 'Baixada') {
     filtradas = filtradas.filter(v => v.status === 'Baixada');
-  } else if (filtroStatusAtivo === 'Supervisor') {
-    filtradas = filtradas.filter(v => v.funcao === 'Supervisor');
+  } else if (filtroStatusAtivo === 'SemContato') {
+    filtradas = filtradas.filter(v => v.status === 'Operante' && (!v.contato || v.contato.trim() === ''));
   }
 
   const container = document.getElementById('blocksContainer');
@@ -320,24 +321,31 @@ function renderBlocos() {
 
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
-  const funcaoClass = v.funcao ? v.funcao.toLowerCase() : '';
-  const funcaoBadge = v.funcao ? `<span class="badge ${funcaoClass}">${v.funcao}</span>` : '';
+  const semContato = !v.contato || v.contato.trim() === '';
   
   const propBadge = v.propriedade === 'Locada' 
     ? `<span class="badge locada">Locada</span> ${v.empresa ? `<span style="font-size:11px;color:var(--text-dim);">(${v.empresa})</span>` : ''}`
     : `<span class="badge propria">Própria</span>`;
 
+  // Se estiver operante e sem contato, mostra um badge de alerta
+  const contatoDisplay = semContato 
+    ? (v.status === 'Operante' ? `<span class="badge sem-contato">⚠ Sem contato</span>` : `<span style="color:var(--text-faint);">—</span>`)
+    : `<span style="color:var(--text);">${v.contato}</span>`;
+
+  const cardClass = (isBaixada ? 'baixada' : '') + (semContato && v.status === 'Operante' ? ' sem-contato-alerta' : '');
+
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
 
   return `
-    <div class="veh-card ${isBaixada ? 'baixada' : ''}">
+    <div class="veh-card ${cardClass}">
       <div class="veh-header">
         <div class="veh-prefix">${v.prefixo} <span class="veh-placa">${v.placa || 'S/ Placa'}</span></div>
         <span class="badge ${isBaixada ? 'baixada' : 'operante'}">${v.status}</span>
       </div>
       <div class="veh-unidade">${v.unidade}</div>
       <div class="veh-info">
-        <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'} ${funcaoBadge}</div>
+        <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'}</div>
+        <div><span class="label">Contato:</span> ${contatoDisplay}</div>
         <div><span class="label">Propriedade:</span> ${propBadge}</div>
         ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
       </div>
@@ -408,10 +416,7 @@ function abrirModalNovo() {
     <label>Cartão de Abastecimento <input type="text" id="fCartao" placeholder="Opcional"></label>
     <label>Status <select id="fStatus"><option value="Operante">Operante</option><option value="Baixada">Baixada</option></select></label>
     <label>Condutor <input type="text" id="fCondutor" placeholder="Nome do condutor"></label>
-    <label>Função <select id="fFuncao">
-      <option value="">Nenhuma</option><option value="Supervisor">Supervisor</option>
-      <option value="Auxiliar">Auxiliar</option><option value="Apoio">Apoio</option><option value="Motorista">Motorista</option>
-    </select></label>
+    <label>Contato <input type="text" id="fContato" placeholder="Ex: (65) 99999-9999"></label>
     <label>Observações <input type="text" id="fObs" placeholder="Opcional"></label>
   `;
   modal.style.display = 'flex';
@@ -442,13 +447,7 @@ function abrirModalEditar(index) {
       <option value="Baixada" ${v.status === 'Baixada' ? 'selected' : ''}>Baixada</option>
     </select></label>
     <label>Condutor <input type="text" id="fCondutor" value="${v.condutor || ''}"></label>
-    <label>Função <select id="fFuncao">
-      <option value="">Nenhuma</option>
-      <option value="Supervisor" ${v.funcao === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
-      <option value="Auxiliar" ${v.funcao === 'Auxiliar' ? 'selected' : ''}>Auxiliar</option>
-      <option value="Apoio" ${v.funcao === 'Apoio' ? 'selected' : ''}>Apoio</option>
-      <option value="Motorista" ${v.funcao === 'Motorista' ? 'selected' : ''}>Motorista</option>
-    </select></label>
+    <label>Contato <input type="text" id="fContato" value="${v.contato || ''}" placeholder="Ex: (65) 99999-9999"></label>
     <label>Observações <input type="text" id="fObs" value="${v.obs || ''}"></label>
   `;
   setTimeout(toggleEmpresa, 10);
@@ -467,7 +466,7 @@ document.getElementById('modalConfirm').onclick = () => {
     cartao: document.getElementById('fCartao').value.trim(),
     status: document.getElementById('fStatus').value,
     condutor: document.getElementById('fCondutor').value.trim(),
-    funcao: document.getElementById('fFuncao').value,
+    contato: document.getElementById('fContato').value.trim(),
     obs: document.getElementById('fObs').value.trim()
   };
   if (!dados.prefixo) return alert('O prefixo é obrigatório!');
