@@ -28,6 +28,7 @@
 
   /* INDICADOR */
   .update-indicator{font-size:11px;color:var(--text-faint);text-align:right;margin-bottom:14px;}
+  .update-indicator button { background:none; border:none; color:var(--amber); cursor:pointer; text-decoration:underline; font-size:11px; font-family:'Inter',sans-serif; }
 
   /* CARDS RESUMO */
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
@@ -147,7 +148,9 @@
     </div>
   </header>
 
-  <div class="update-indicator" id="updateStatus">Carregando dados...</div>
+  <div class="update-indicator" id="updateStatus">
+    Carregando dados... <button onclick="carregarDados()">(Atualizar)</button>
+  </div>
 
   <div class="summary" id="summaryCards"></div>
 
@@ -161,25 +164,51 @@
 
   <div class="blocks-container" id="blocksContainer"></div>
 
-  <footer>Dados carregados da planilha Google Sheets. Painel de apoio à Eleição.</footer>
+  <footer>Dados sincronizados com o Google Sheets.</footer>
 </div>
 
 <script>
 // ============================================================
-// DADOS SIMULADOS
+// CONFIGURAÇÃO - SUA URL DO APPS SCRIPT
 // ============================================================
-let viaturas = [
-  { prefixo: 'ABS-01', placa: 'ABC-1234', tipo: 'ABS', unidade: '1º GBM', propriedade: 'Própria', empresa: '', cartao: '1234', status: 'Operante', condutor: 'João Silva', funcao: 'Supervisor', obs: '' },
-  { prefixo: 'UR-14', placa: 'XYZ-9876', tipo: 'UR', unidade: '2º GBM', propriedade: 'Locada', empresa: 'Locadora Alfa', cartao: '5678', status: 'Baixada', condutor: 'Maria Souza', funcao: 'Auxiliar', obs: 'Pneu furado' },
-  { prefixo: 'APC-01', placa: 'DEF-5678', tipo: 'APC', unidade: 'DEMAN', propriedade: 'Própria', empresa: '', cartao: '', status: 'Operante', condutor: 'Carlos Lima', funcao: 'Apoio', obs: '' },
-  { prefixo: 'ABS-10', placa: 'GHI-9012', tipo: 'ABS', unidade: '3º GBM', propriedade: 'Locada', empresa: 'Locadora Beta', cartao: '9012', status: 'Operante', condutor: 'Ana Paula', funcao: 'Supervisor', obs: '' },
-  { prefixo: 'UR-16', placa: 'JKL-3456', tipo: 'UR', unidade: '4º GBM', propriedade: 'Própria', empresa: '', cartao: '', status: 'Operante', condutor: 'Pedro Santos', funcao: 'Motorista', obs: '' },
-  { prefixo: 'ABT-19', placa: 'MNO-1122', tipo: 'ABT', unidade: '1º GBM', propriedade: 'Própria', empresa: '', cartao: '1122', status: 'Operante', condutor: 'Lucas Rocha', funcao: 'Supervisor', obs: '' }
-];
+const API_URL = 'https://script.google.com/macros/s/AKfycbykNNKd64T7-T48mddNYU4gcHEpYzKbrXf8b7W_9JGf7q3yONQ3AP45XDCO-rvw2iWNrg/exec';
 
+let viaturas = [];
 let filtroAtivo = 'Todas';
-let filtroStatusAtivo = 'Total';
+let filtroStatusAtivo = 'Operante'; 
 let termoBusca = '';
+
+// ============================================================
+// COMUNICAÇÃO COM O BACKEND
+// ============================================================
+async function carregarDados() {
+  document.getElementById('updateStatus').innerText = 'Carregando dados...';
+  try {
+    const resp = await fetch(API_URL);
+    viaturas = await resp.json();
+    renderTudo();
+    document.getElementById('updateStatus').innerText = 'Última atualização: ' + new Date().toLocaleString('pt-BR');
+  } catch(e) {
+    console.error(e);
+    document.getElementById('updateStatus').innerText = 'Erro ao conectar com a planilha.';
+  }
+}
+
+async function enviarParaPlanilha(action, dados) {
+  try {
+    const payload = { action: action, ...dados };
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    viaturas = await resp.json();
+    renderTudo();
+  } catch(e) {
+    console.error('Erro ao salvar:', e);
+    alert('Erro ao salvar na planilha. Verifique sua conexão.');
+  }
+}
 
 // ============================================================
 // FUNÇÕES DE RENDERIZAÇÃO
@@ -188,7 +217,6 @@ function renderTudo() {
   renderResumo();
   renderAbas();
   renderBlocos();
-  document.getElementById('updateStatus').innerText = 'Última atualização: ' + new Date().toLocaleString('pt-BR');
 }
 
 function renderResumo() {
@@ -213,20 +241,12 @@ function renderResumo() {
   `;
 }
 
-// ============================================================
-// RENDERIZAR ABAS (COM ORDEM PERSONALIZADA)
-// ============================================================
 function renderAbas() {
   const todasUnidades = [...new Set(viaturas.map(v => v.unidade))];
-  
-  // Remove "DEMAN" da lista para ordenar o restante
   const temDeman = todasUnidades.includes('DEMAN');
   let outras = todasUnidades.filter(u => u !== 'DEMAN');
-  
-  // Ordena as outras unidades (GBMs) em ordem crescente
   outras.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
   
-  // Monta a lista final: Todas -> DEMAN -> Outras em ordem
   const unidadesOrdenadas = ['Todas'];
   if (temDeman) unidadesOrdenadas.push('DEMAN');
   unidadesOrdenadas.push(...outras);
@@ -236,19 +256,16 @@ function renderAbas() {
   ).join('');
 }
 
-// ============================================================
-// RENDERIZAR BLOCOS
-// ============================================================
 function renderBlocos() {
   let filtradas = viaturas;
   
   if (termoBusca) {
     const t = termoBusca.toLowerCase();
     filtradas = filtradas.filter(v => 
-      v.prefixo.toLowerCase().includes(t) || 
-      v.condutor.toLowerCase().includes(t) || 
-      v.unidade.toLowerCase().includes(t) ||
-      v.placa.toLowerCase().includes(t)
+      (v.prefixo || '').toLowerCase().includes(t) || 
+      (v.condutor || '').toLowerCase().includes(t) || 
+      (v.unidade || '').toLowerCase().includes(t) ||
+      (v.placa || '').toLowerCase().includes(t)
     );
   }
 
@@ -301,9 +318,6 @@ function renderBlocos() {
   container.innerHTML = html;
 }
 
-// ============================================================
-// RENDERIZAR CARD
-// ============================================================
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
   const funcaoClass = v.funcao ? v.funcao.toLowerCase() : '';
@@ -332,7 +346,7 @@ function renderCard(v) {
         <button class="btn-icon" onclick="abrirModalEditar(${realIndex})" title="Editar Viatura">
           <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
         </button>
-        <button class="btn ${isBaixada ? 'primary' : 'danger'}" style="padding: 6px 10px; font-size: 11px;" onclick="alternarStatus(${realIndex})">
+        <button class="btn ${isBaixada ? 'primary' : 'danger'}" style="padding: 6px 10px; font-size: 11px;" onclick="alternarStatus('${v.prefixo}')">
           ${isBaixada ? '✅ Operar' : '⛔ Baixar'}
         </button>
       </div>
@@ -357,7 +371,7 @@ window.mudarFiltroStatus = (status) => {
 document.getElementById('search').addEventListener('input', (e) => { termoBusca = e.target.value; renderBlocos(); });
 
 // Modal de Edição / Adição
-let editandoIndex = -1;
+let editandoPrefixoOriginal = null;
 const modal = document.getElementById('actionModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalFields = document.getElementById('modalFields');
@@ -375,7 +389,7 @@ window.toggleEmpresa = () => {
 };
 
 function abrirModalNovo() {
-  editandoIndex = -1;
+  editandoPrefixoOriginal = null;
   modalTitle.innerText = 'Nova Viatura';
   modalFields.innerHTML = `
     <label>Prefixo <input type="text" id="fPrefixo" placeholder="Ex: ABS-01"></label>
@@ -404,8 +418,8 @@ function abrirModalNovo() {
 }
 
 function abrirModalEditar(index) {
-  editandoIndex = index;
   const v = viaturas[index];
+  editandoPrefixoOriginal = v.prefixo;
   modalTitle.innerText = 'Editar Viatura';
   modalFields.innerHTML = `
     <label>Prefixo <input type="text" id="fPrefixo" value="${v.prefixo}"></label>
@@ -458,18 +472,17 @@ document.getElementById('modalConfirm').onclick = () => {
   };
   if (!dados.prefixo) return alert('O prefixo é obrigatório!');
 
-  if (editandoIndex === -1) {
-    viaturas.push(dados);
-  } else {
-    viaturas[editandoIndex] = dados;
-  }
+  const isNew = editandoPrefixoOriginal === null;
+  
+  enviarParaPlanilha('save', { viatura: dados, isNew: isNew, oldPrefixo: editandoPrefixoOriginal });
+  
   modal.style.display = 'none';
-  renderTudo();
 };
 
-function alternarStatus(index) {
-  viaturas[index].status = viaturas[index].status === 'Operante' ? 'Baixada' : 'Operante';
-  renderTudo();
+function alternarStatus(prefixo) {
+  const v = viaturas.find(x => x.prefixo === prefixo);
+  const novoStatus = v.status === 'Operante' ? 'Baixada' : 'Operante';
+  enviarParaPlanilha('toggleStatus', { prefixo: prefixo, status: novoStatus });
 }
 
 document.getElementById('addBtn').onclick = abrirModalNovo;
@@ -477,7 +490,7 @@ document.getElementById('addBtn').onclick = abrirModalNovo;
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-renderTudo();
+carregarDados();
 </script>
 </body>
 </html>
