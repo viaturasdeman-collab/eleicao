@@ -31,7 +31,7 @@
 
   /* CARDS RESUMO */
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
-  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;}
+  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s ease;}
   .summary-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;}
   .summary-card.total::before{background:var(--amber);}
   .summary-card.operantes::before{background:var(--azul);}
@@ -43,6 +43,12 @@
   .summary-card.operantes .value{color:var(--azul);}
   .summary-card.baixadas .value{color:var(--vermelho);}
   .summary-card.supervisores .value{color:var(--roxo);}
+  .summary-card:hover { background: var(--surface-2); transform: translateY(-2px); }
+  .summary-card.active { background: var(--surface-2); border-color: var(--text-dim); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
+  .summary-card.active.total { border-color: var(--amber); box-shadow: 0 0 15px rgba(232,169,58,0.2); }
+  .summary-card.active.operantes { border-color: var(--azul); box-shadow: 0 0 15px rgba(0,171,251,0.2); }
+  .summary-card.active.baixadas { border-color: var(--vermelho); box-shadow: 0 0 15px rgba(239,83,80,0.2); }
+  .summary-card.active.supervisores { border-color: var(--roxo); box-shadow: 0 0 15px rgba(177,140,255,0.2); }
 
   /* TOOLBAR */
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -60,11 +66,33 @@
   .btn.ghost{background:transparent;}
   .btn.danger:hover{border-color:var(--vermelho);color:var(--vermelho);}
 
-  /* GRID DE VIATURAS */
-  .veh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
-  .veh-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--azul);border-radius:11px;padding:14px 16px;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
+  /* BOTÃO DE ÍCONE (LÁPIS) */
+  .btn-icon {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer; transition: all 0.2s ease;
+    padding: 0; flex-shrink: 0;
+  }
+  .btn-icon:hover { background: var(--surface); color: var(--amber); border-color: var(--amber); }
+  .btn-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* BLOCOS */
+  .blocks-container{display:flex;flex-direction:column;gap:20px;}
+  .block{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .block-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--surface);cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+  .block-header:hover{background:var(--surface-2);}
+  .block-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;color:var(--text);display:flex;align-items:center;gap:10px;}
+  .block-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);background:var(--surface-2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);}
+  .block-toggle{font-size:12px;color:var(--text-dim);transition:transform 0.2s;}
+  .block[open] .block-toggle{transform:rotate(180deg);}
+  .block-content{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+
+  /* CARDS DE VIATURA */
+  .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
   .veh-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
-  .veh-card.baixada{border-left-color:var(--vermelho);opacity:.92;}
+  .veh-card.baixada{opacity:.92;}
+  
   .veh-header{display:flex;justify-content:space-between;align-items:center;}
   .veh-prefix{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;}
   .veh-placa{font-size:12px;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-weight:600;margin-left:6px;}
@@ -72,8 +100,7 @@
   .veh-info{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;}
   .veh-info span.label{color:var(--text-dim);font-size:11px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
   .veh-obs{font-size:11px;color:var(--text-faint);font-style:italic;margin-top:4px;}
-  .veh-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;border-top:1px solid var(--border);padding-top:8px;}
-  .veh-actions .btn{font-size:11px;padding:5px 8px;}
+  .veh-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;border-top:1px solid var(--border);padding-top:8px;}
 
   /* BADGES */
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--border);white-space:nowrap;}
@@ -116,7 +143,7 @@
   <header>
     <div class="htitle">
       <div class="eyebrow">DEMAN · Apoio Visual à Eleição</div>
-      <h1>Painel de Viaturas e Equipes</h1>
+      <h1>Eleições 2026</h1>
     </div>
   </header>
 
@@ -132,24 +159,26 @@
     </div>
   </div>
 
-  <div class="veh-grid" id="vehGrid"></div>
+  <div class="blocks-container" id="blocksContainer"></div>
 
   <footer>Dados carregados da planilha Google Sheets. Painel de apoio à Eleição.</footer>
 </div>
 
 <script>
 // ============================================================
-// DADOS SIMULADOS (SUBSTITUA PELA PLANILHA REAL DEPOIS)
+// DADOS SIMULADOS
 // ============================================================
 let viaturas = [
   { prefixo: 'ABS-01', placa: 'ABC-1234', tipo: 'ABS', unidade: '1º GBM', propriedade: 'Própria', empresa: '', cartao: '1234', status: 'Operante', condutor: 'João Silva', funcao: 'Supervisor', obs: '' },
   { prefixo: 'UR-14', placa: 'XYZ-9876', tipo: 'UR', unidade: '2º GBM', propriedade: 'Locada', empresa: 'Locadora Alfa', cartao: '5678', status: 'Baixada', condutor: 'Maria Souza', funcao: 'Auxiliar', obs: 'Pneu furado' },
   { prefixo: 'APC-01', placa: 'DEF-5678', tipo: 'APC', unidade: 'DEMAN', propriedade: 'Própria', empresa: '', cartao: '', status: 'Operante', condutor: 'Carlos Lima', funcao: 'Apoio', obs: '' },
   { prefixo: 'ABS-10', placa: 'GHI-9012', tipo: 'ABS', unidade: '3º GBM', propriedade: 'Locada', empresa: 'Locadora Beta', cartao: '9012', status: 'Operante', condutor: 'Ana Paula', funcao: 'Supervisor', obs: '' },
-  { prefixo: 'UR-16', placa: 'JKL-3456', tipo: 'UR', unidade: '4º GBM', propriedade: 'Própria', empresa: '', cartao: '', status: 'Operante', condutor: 'Pedro Santos', funcao: 'Motorista', obs: '' }
+  { prefixo: 'UR-16', placa: 'JKL-3456', tipo: 'UR', unidade: '4º GBM', propriedade: 'Própria', empresa: '', cartao: '', status: 'Operante', condutor: 'Pedro Santos', funcao: 'Motorista', obs: '' },
+  { prefixo: 'ABT-19', placa: 'MNO-1122', tipo: 'ABT', unidade: '1º GBM', propriedade: 'Própria', empresa: '', cartao: '1122', status: 'Operante', condutor: 'Lucas Rocha', funcao: 'Supervisor', obs: '' }
 ];
 
 let filtroAtivo = 'Todas';
+let filtroStatusAtivo = 'Total';
 let termoBusca = '';
 
 // ============================================================
@@ -158,7 +187,7 @@ let termoBusca = '';
 function renderTudo() {
   renderResumo();
   renderAbas();
-  renderGrid();
+  renderBlocos();
   document.getElementById('updateStatus').innerText = 'Última atualização: ' + new Date().toLocaleString('pt-BR');
 }
 
@@ -169,23 +198,50 @@ function renderResumo() {
   const supervisores = viaturas.filter(v => v.funcao === 'Supervisor').length;
 
   document.getElementById('summaryCards').innerHTML = `
-    <div class="summary-card total"><div class="label">Total de Viaturas</div><div class="value">${total}</div></div>
-    <div class="summary-card operantes"><div class="label">Operantes</div><div class="value">${operantes}</div></div>
-    <div class="summary-card baixadas"><div class="label">Baixadas</div><div class="value">${baixadas}</div></div>
-    <div class="summary-card supervisores"><div class="label">Supervisores</div><div class="value">${supervisores}</div></div>
+    <div class="summary-card total ${filtroStatusAtivo === 'Total' ? 'active' : ''}" onclick="mudarFiltroStatus('Total')">
+      <div class="label">Total de Viaturas</div><div class="value">${total}</div>
+    </div>
+    <div class="summary-card operantes ${filtroStatusAtivo === 'Operante' ? 'active' : ''}" onclick="mudarFiltroStatus('Operante')">
+      <div class="label">Operantes</div><div class="value">${operantes}</div>
+    </div>
+    <div class="summary-card baixadas ${filtroStatusAtivo === 'Baixada' ? 'active' : ''}" onclick="mudarFiltroStatus('Baixada')">
+      <div class="label">Baixadas</div><div class="value">${baixadas}</div>
+    </div>
+    <div class="summary-card supervisores ${filtroStatusAtivo === 'Supervisor' ? 'active' : ''}" onclick="mudarFiltroStatus('Supervisor')">
+      <div class="label">Supervisores</div><div class="value">${supervisores}</div>
+    </div>
   `;
 }
 
+// ============================================================
+// RENDERIZAR ABAS (COM ORDEM PERSONALIZADA)
+// ============================================================
 function renderAbas() {
-  const unidades = ['Todas', ...new Set(viaturas.map(v => v.unidade))];
-  document.getElementById('tabsContainer').innerHTML = unidades.map(u => 
+  const todasUnidades = [...new Set(viaturas.map(v => v.unidade))];
+  
+  // Remove "DEMAN" da lista para ordenar o restante
+  const temDeman = todasUnidades.includes('DEMAN');
+  let outras = todasUnidades.filter(u => u !== 'DEMAN');
+  
+  // Ordena as outras unidades (GBMs) em ordem crescente
+  outras.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  
+  // Monta a lista final: Todas -> DEMAN -> Outras em ordem
+  const unidadesOrdenadas = ['Todas'];
+  if (temDeman) unidadesOrdenadas.push('DEMAN');
+  unidadesOrdenadas.push(...outras);
+
+  document.getElementById('tabsContainer').innerHTML = unidadesOrdenadas.map(u => 
     `<button class="tab ${filtroAtivo === u ? 'active' : ''}" onclick="mudarFiltro('${u}')">${u}</button>`
   ).join('');
 }
 
-function renderGrid() {
+// ============================================================
+// RENDERIZAR BLOCOS
+// ============================================================
+function renderBlocos() {
   let filtradas = viaturas;
-  if (filtroAtivo !== 'Todas') filtradas = filtradas.filter(v => v.unidade === filtroAtivo);
+  
   if (termoBusca) {
     const t = termoBusca.toLowerCase();
     filtradas = filtradas.filter(v => 
@@ -196,52 +252,109 @@ function renderGrid() {
     );
   }
 
-  const grid = document.getElementById('vehGrid');
+  if (filtroAtivo !== 'Todas') {
+    filtradas = filtradas.filter(v => v.unidade === filtroAtivo);
+  }
+
+  if (filtroStatusAtivo === 'Operante') {
+    filtradas = filtradas.filter(v => v.status === 'Operante');
+  } else if (filtroStatusAtivo === 'Baixada') {
+    filtradas = filtradas.filter(v => v.status === 'Baixada');
+  } else if (filtroStatusAtivo === 'Supervisor') {
+    filtradas = filtradas.filter(v => v.funcao === 'Supervisor');
+  }
+
+  const container = document.getElementById('blocksContainer');
+  
   if (filtradas.length === 0) {
-    grid.innerHTML = '<div class="empty">Nenhuma viatura encontrada.</div>';
+    container.innerHTML = '<div class="empty">Nenhuma viatura encontrada com os filtros atuais.</div>';
     return;
   }
 
-  grid.innerHTML = filtradas.map((v, index) => {
-    const isBaixada = v.status === 'Baixada';
-    const funcaoClass = v.funcao ? v.funcao.toLowerCase() : '';
-    const funcaoBadge = v.funcao ? `<span class="badge ${funcaoClass}">${v.funcao}</span>` : '';
-    
-    const propBadge = v.propriedade === 'Locada' 
-      ? `<span class="badge locada">Locada</span> ${v.empresa ? `<span style="font-size:11px;color:var(--text-dim);">(${v.empresa})</span>` : ''}`
-      : `<span class="badge propria">Própria</span>`;
+  const grupos = {};
+  filtradas.forEach(v => {
+    const tipo = v.tipo || 'OUTROS';
+    if (!grupos[tipo]) grupos[tipo] = [];
+    grupos[tipo].push(v);
+  });
 
-    const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
+  const tiposOrdenados = Object.keys(grupos).sort((a, b) => a.localeCompare(b));
 
-    return `
-      <div class="veh-card ${isBaixada ? 'baixada' : ''}">
-        <div class="veh-header">
-          <div class="veh-prefix">${v.prefixo} <span class="veh-placa">${v.placa || 'S/ Placa'}</span></div>
-          <span class="badge ${isBaixada ? 'baixada' : 'operante'}">${v.status}</span>
+  let html = '';
+  for (const tipo of tiposOrdenados) {
+    const items = grupos[tipo];
+    html += `
+      <details class="block" open>
+        <summary class="block-header">
+          <div class="block-title">
+            ${tipo} 
+            <span class="block-count">${items.length} viaturas</span>
+          </div>
+          <span class="block-toggle">▼</span>
+        </summary>
+        <div class="block-content">
+          ${items.map(v => renderCard(v)).join('')}
         </div>
-        <div class="veh-unidade">${v.unidade} · ${v.tipo}</div>
-        <div class="veh-info">
-          <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'} ${funcaoBadge}</div>
-          <div><span class="label">Propriedade:</span> ${propBadge}</div>
-          ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
-        </div>
-        ${v.obs ? `<div class="veh-obs">Obs: ${v.obs}</div>` : ''}
-        <div class="veh-actions">
-          <button class="btn" onclick="abrirModalEditar(${realIndex})">✏️ Editar</button>
-          <button class="btn ${isBaixada ? 'primary' : 'danger'}" onclick="alternarStatus(${realIndex})">
-            ${isBaixada ? '✅ Operar' : '⛔ Baixar'}
-          </button>
-        </div>
-      </div>
+      </details>
     `;
-  }).join('');
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+// RENDERIZAR CARD
+// ============================================================
+function renderCard(v) {
+  const isBaixada = v.status === 'Baixada';
+  const funcaoClass = v.funcao ? v.funcao.toLowerCase() : '';
+  const funcaoBadge = v.funcao ? `<span class="badge ${funcaoClass}">${v.funcao}</span>` : '';
+  
+  const propBadge = v.propriedade === 'Locada' 
+    ? `<span class="badge locada">Locada</span> ${v.empresa ? `<span style="font-size:11px;color:var(--text-dim);">(${v.empresa})</span>` : ''}`
+    : `<span class="badge propria">Própria</span>`;
+
+  const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
+
+  return `
+    <div class="veh-card ${isBaixada ? 'baixada' : ''}">
+      <div class="veh-header">
+        <div class="veh-prefix">${v.prefixo} <span class="veh-placa">${v.placa || 'S/ Placa'}</span></div>
+        <span class="badge ${isBaixada ? 'baixada' : 'operante'}">${v.status}</span>
+      </div>
+      <div class="veh-unidade">${v.unidade}</div>
+      <div class="veh-info">
+        <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'} ${funcaoBadge}</div>
+        <div><span class="label">Propriedade:</span> ${propBadge}</div>
+        ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
+      </div>
+      ${v.obs ? `<div class="veh-obs">Obs: ${v.obs}</div>` : ''}
+      <div class="veh-actions">
+        <button class="btn-icon" onclick="abrirModalEditar(${realIndex})" title="Editar Viatura">
+          <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+        </button>
+        <button class="btn ${isBaixada ? 'primary' : 'danger'}" style="padding: 6px 10px; font-size: 11px;" onclick="alternarStatus(${realIndex})">
+          ${isBaixada ? '✅ Operar' : '⛔ Baixar'}
+        </button>
+      </div>
+    </div>
+  `;
 }
 
 // ============================================================
 // AÇÕES
 // ============================================================
 window.mudarFiltro = (u) => { filtroAtivo = u; renderTudo(); };
-document.getElementById('search').addEventListener('input', (e) => { termoBusca = e.target.value; renderGrid(); });
+
+window.mudarFiltroStatus = (status) => {
+  if (filtroStatusAtivo === status) {
+    filtroStatusAtivo = 'Total';
+  } else {
+    filtroStatusAtivo = status;
+  }
+  renderTudo();
+};
+
+document.getElementById('search').addEventListener('input', (e) => { termoBusca = e.target.value; renderBlocos(); });
 
 // Modal de Edição / Adição
 let editandoIndex = -1;
@@ -249,7 +362,6 @@ const modal = document.getElementById('actionModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalFields = document.getElementById('modalFields');
 
-// Função para mostrar/esconder o campo Empresa
 window.toggleEmpresa = () => {
   const prop = document.getElementById('fPropriedade').value;
   const labelEmpresa = document.getElementById('labelEmpresa');
@@ -258,7 +370,7 @@ window.toggleEmpresa = () => {
     labelEmpresa.style.display = 'flex';
   } else {
     labelEmpresa.style.display = 'none';
-    inputEmpresa.value = ''; // Limpa se mudar para própria
+    inputEmpresa.value = ''; 
   }
 };
 
@@ -268,27 +380,23 @@ function abrirModalNovo() {
   modalFields.innerHTML = `
     <label>Prefixo <input type="text" id="fPrefixo" placeholder="Ex: ABS-01"></label>
     <label>Placa <input type="text" id="fPlaca" placeholder="Ex: ABC-1234"></label>
-    <label>Tipo <input type="text" id="fTipo" placeholder="Ex: ABS, UR, APC"></label>
+    <label>Tipo <input type="text" id="fTipo" placeholder="Ex: ABS, UR, APC" list="listaTipos"></label>
+    <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
     <label>Unidade <input type="text" id="fUnidade" placeholder="Ex: 1º GBM" list="listaUnidades"></label>
     <datalist id="listaUnidades">
-      <option value="1º GBM"><option value="2º GBM"><option value="3º GBM">
-      <option value="4º GBM"><option value="5º GBM"><option value="6º GBM">
-      <option value="7º GBM"><option value="DEMAN">
+      <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
+      <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
-      <option value="Própria">Própria</option>
-      <option value="Locada">Locada</option>
+      <option value="Própria">Própria</option><option value="Locada">Locada</option>
     </select></label>
     <label id="labelEmpresa" style="display:none;">Empresa (Locada) <input type="text" id="fEmpresa" placeholder="Nome da empresa"></label>
     <label>Cartão de Abastecimento <input type="text" id="fCartao" placeholder="Opcional"></label>
     <label>Status <select id="fStatus"><option value="Operante">Operante</option><option value="Baixada">Baixada</option></select></label>
     <label>Condutor <input type="text" id="fCondutor" placeholder="Nome do condutor"></label>
     <label>Função <select id="fFuncao">
-      <option value="">Nenhuma</option>
-      <option value="Supervisor">Supervisor</option>
-      <option value="Auxiliar">Auxiliar</option>
-      <option value="Apoio">Apoio</option>
-      <option value="Motorista">Motorista</option>
+      <option value="">Nenhuma</option><option value="Supervisor">Supervisor</option>
+      <option value="Auxiliar">Auxiliar</option><option value="Apoio">Apoio</option><option value="Motorista">Motorista</option>
     </select></label>
     <label>Observações <input type="text" id="fObs" placeholder="Opcional"></label>
   `;
@@ -302,12 +410,12 @@ function abrirModalEditar(index) {
   modalFields.innerHTML = `
     <label>Prefixo <input type="text" id="fPrefixo" value="${v.prefixo}"></label>
     <label>Placa <input type="text" id="fPlaca" value="${v.placa || ''}"></label>
-    <label>Tipo <input type="text" id="fTipo" value="${v.tipo}"></label>
+    <label>Tipo <input type="text" id="fTipo" value="${v.tipo}" list="listaTipos"></label>
+    <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
     <label>Unidade <input type="text" id="fUnidade" value="${v.unidade}" list="listaUnidades"></label>
     <datalist id="listaUnidades">
-      <option value="1º GBM"><option value="2º GBM"><option value="3º GBM">
-      <option value="4º GBM"><option value="5º GBM"><option value="6º GBM">
-      <option value="7º GBM"><option value="DEMAN">
+      <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
+      <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria" ${v.propriedade === 'Própria' ? 'selected' : ''}>Própria</option>
@@ -329,7 +437,6 @@ function abrirModalEditar(index) {
     </select></label>
     <label>Observações <input type="text" id="fObs" value="${v.obs || ''}"></label>
   `;
-  // Chama a função para garantir que o campo empresa apareça se for locada
   setTimeout(toggleEmpresa, 10);
   modal.style.display = 'flex';
 }
@@ -368,45 +475,9 @@ function alternarStatus(index) {
 document.getElementById('addBtn').onclick = abrirModalNovo;
 
 // ============================================================
-// INICIALIZAÇÃO (SIMULADA)
+// INICIALIZAÇÃO
 // ============================================================
 renderTudo();
-
-// ============================================================
-// CÓDIGO PARA CARREGAR DA PLANILHA REAL (DESCOMENTE QUANDO TIVER)
-// ============================================================
-/*
-async function carregarDados() {
-  try {
-    const SHEET_ID = 'SEU_ID_DA_PLANILHA_AQUI';
-    const SHEET_NAME = 'Eleicao';
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    const json = JSON.parse(text.substr(47).slice(0, -2));
-    const rows = json.table.rows;
-    viaturas = rows.map(r => ({
-      prefixo: r.c[0]?.v || '',
-      placa: r.c[1]?.v || '',
-      tipo: r.c[2]?.v || '',
-      unidade: r.c[3]?.v || '',
-      propriedade: r.c[4]?.v || 'Própria',
-      empresa: r.c[5]?.v || '',
-      cartao: r.c[6]?.v || '',
-      status: r.c[7]?.v || 'Operante',
-      condutor: r.c[8]?.v || '',
-      funcao: r.c[9]?.v || '',
-      obs: r.c[10]?.v || ''
-    }));
-    renderTudo();
-  } catch(e) {
-    console.error('Erro ao carregar planilha:', e);
-    document.getElementById('updateStatus').innerText = 'Erro ao carregar dados. Usando dados locais.';
-    renderTudo();
-  }
-}
-carregarDados();
-*/
 </script>
 </body>
 </html>
