@@ -100,7 +100,23 @@
   .veh-header{display:flex;justify-content:space-between;align-items:center;}
   .veh-prefix{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;}
   .veh-placa{font-size:12px;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-weight:600;margin-left:6px;}
-  .veh-unidade{font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;background:var(--surface-2);padding:2px 8px;border-radius:12px;border:1px solid var(--border);display:inline-block;}
+  
+  /* LOCALIZAÇÃO/UNIDADE - AGORA COM DESTAQUE */
+  .veh-unidade{
+    font-size:14px;
+    color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    background:linear-gradient(90deg, rgba(232,169,58,.12), rgba(232,169,58,.04));
+    border-left:3px solid var(--amber);
+    padding:6px 12px;
+    border-radius:6px;
+    display:block;
+    margin:2px 0;
+  }
+  
   .veh-info{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;}
   .veh-info span.label{color:var(--text-dim);font-size:11px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
   .veh-obs{font-size:11px;color:var(--text-faint);font-style:italic;margin-top:4px;}
@@ -110,8 +126,30 @@
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--border);white-space:nowrap;}
   .badge.operante{background:rgba(0,171,251,.15);color:var(--azul);border-color:var(--azul);}
   .badge.baixada{background:rgba(239,83,80,.15);color:var(--vermelho);border-color:var(--vermelho);}
-  .badge.propria{background:rgba(61,220,132,.1);color:var(--verde);border-color:var(--verde);}
-  .badge.locada{background:rgba(232,169,58,.1);color:var(--amber);border-color:var(--amber);}
+  
+  /* PROPRIEDADE - AGORA DISCRETA (SÓ TEXTO CINZA) */
+  .badge.propria{
+    background:transparent;
+    border:none;
+    color:var(--text-dim);
+    padding:0;
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:500;
+  }
+  .badge.propria::before{content:"— ";color:var(--text-faint);}
+  
+  .badge.locada{
+    background:transparent;
+    border:none;
+    color:var(--text-dim);
+    padding:0;
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:500;
+  }
+  .badge.locada::before{content:"— ";color:var(--text-faint);}
+  
   .badge.sem-contato{background:rgba(177,140,255,.15);color:var(--roxo);border-color:var(--roxo);}
 
   /* MODAL */
@@ -194,7 +232,6 @@ let segundosRestantes = AUTO_REFRESH_SECONDS;
 // COMUNICAÇÃO COM O BACKEND
 // ============================================================
 async function carregarDados() {
-  // Não recarrega se um modal está aberto (evita fechar enquanto edita)
   const modal = document.getElementById('actionModal');
   if (modal.style.display === 'flex') return;
 
@@ -237,14 +274,12 @@ function iniciarAutoRefresh() {
   pararAutoRefresh();
   segundosRestantes = AUTO_REFRESH_SECONDS;
   
-  // Contador de segundos (atualiza a cada 1s)
   countdownTimer = setInterval(() => {
     segundosRestantes--;
     if (segundosRestantes <= 0) segundosRestantes = AUTO_REFRESH_SECONDS;
     atualizarIndicador();
   }, 1000);
   
-  // Timer principal (recarrega a cada N segundos)
   autoRefreshTimer = setInterval(() => {
     carregarDados();
   }, AUTO_REFRESH_SECONDS * 1000);
@@ -361,7 +396,6 @@ function renderBlocos() {
 
   let html = '';
   for (const tipo of tiposOrdenados) {
-    // Ordena os cards dentro do bloco por prefixo (alfanumérica crescente)
     const items = grupos[tipo].sort((a, b) => 
       String(a.prefixo || '').localeCompare(String(b.prefixo || ''), undefined, { numeric: true, sensitivity: 'base' })
     );
@@ -388,9 +422,9 @@ function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
   const semContato = !v.contato || String(v.contato).trim() === '';
   
-  const propBadge = v.propriedade === 'Locada' 
-    ? `<span class="badge locada">Locada</span> ${v.empresa ? `<span style="font-size:11px;color:var(--text-dim);">(${v.empresa})</span>` : ''}`
-    : `<span class="badge propria">Própria</span>`;
+  const propText = v.propriedade === 'Locada' 
+    ? `Locada ${v.empresa ? `(${v.empresa})` : ''}`
+    : `Própria`;
 
   const contatoDisplay = semContato 
     ? (v.status === 'Operante' ? `<span class="badge sem-contato">⚠ Sem contato</span>` : `<span style="color:var(--text-faint);">—</span>`)
@@ -406,11 +440,11 @@ function renderCard(v) {
         <div class="veh-prefix">${v.prefixo} <span class="veh-placa">${v.placa || 'S/ Placa'}</span></div>
         <span class="badge ${isBaixada ? 'baixada' : 'operante'}">${v.status}</span>
       </div>
-      <div class="veh-unidade">${v.unidade}</div>
+      <div class="veh-unidade">📍 ${v.unidade}</div>
       <div class="veh-info">
         <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'}</div>
         <div><span class="label">Contato:</span> ${contatoDisplay}</div>
-        <div><span class="label">Propriedade:</span> ${propBadge}</div>
+        <div><span class="label">Propriedade:</span> <span class="${v.propriedade === 'Locada' ? 'badge locada' : 'badge propria'}">${propText}</span></div>
         ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
       </div>
       ${v.obs ? `<div class="veh-obs">Obs: ${v.obs}</div>` : ''}
@@ -557,7 +591,6 @@ carregarDados().then(() => {
   iniciarAutoRefresh();
 });
 
-// Pausa o auto-refresh quando a aba do navegador não está visível
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     pararAutoRefresh();
