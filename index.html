@@ -295,11 +295,16 @@ function renderBlocos() {
     grupos[tipo].push(v);
   });
 
+  // Ordena os tipos alfabeticamente
   const tiposOrdenados = Object.keys(grupos).sort((a, b) => a.localeCompare(b));
 
   let html = '';
   for (const tipo of tiposOrdenados) {
-    const items = grupos[tipo];
+    // ⬇️ ORDENAÇÃO DOS CARDS DENTRO DO BLOCO (alfanumérica crescente por prefixo)
+    const items = grupos[tipo].sort((a, b) => 
+      String(a.prefixo || '').localeCompare(String(b.prefixo || ''), undefined, { numeric: true, sensitivity: 'base' })
+    );
+    
     html += `
       <details class="block" open>
         <summary class="block-header">
@@ -398,10 +403,10 @@ function abrirModalNovo() {
   editandoPrefixoOriginal = null;
   modalTitle.innerText = 'Nova Viatura';
   modalFields.innerHTML = `
-    <label>Prefixo <input type="text" id="fPrefixo" autocomplete="off" placeholder="Ex: ABS-01"></label>
+    <label>Prefixo <input type="text" id="fPrefixo" autocomplete="off" placeholder="Ex: AS-01"></label>
     <label>Placa <input type="text" id="fPlaca" autocomplete="off" placeholder="Ex: ABC-1234"></label>
-    <label>Tipo <input type="text" id="fTipo" autocomplete="off" placeholder="Ex: ABS, UR, APC" list="listaTipos"></label>
-    <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
+    <label>Tipo <input type="text" id="fTipo" autocomplete="off" placeholder="Ex: AS, ABS, UR" list="listaTipos"></label>
+    <datalist id="listaTipos"><option value="AS"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
     <label>Unidade <input type="text" id="fUnidade" autocomplete="off" placeholder="Ex: 1º GBM" list="listaUnidades"></label>
     <datalist id="listaUnidades">
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
@@ -428,7 +433,7 @@ function abrirModalEditar(index) {
     <label>Prefixo <input type="text" id="fPrefixo" autocomplete="off" value="${v.prefixo}"></label>
     <label>Placa <input type="text" id="fPlaca" autocomplete="off" value="${v.placa || ''}"></label>
     <label>Tipo <input type="text" id="fTipo" autocomplete="off" value="${v.tipo}" list="listaTipos"></label>
-    <datalist id="listaTipos"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
+    <datalist id="listaTipos"><option value="AS"><option value="ABS"><option value="ABT"><option value="UR"><option value="APC"><option value="AEM"></datalist>
     <label>Unidade <input type="text" id="fUnidade" autocomplete="off" value="${v.unidade}" list="listaUnidades"></label>
     <datalist id="listaUnidades">
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
