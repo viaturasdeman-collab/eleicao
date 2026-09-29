@@ -27,8 +27,10 @@
   h1{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;margin:0;}
 
   /* INDICADOR */
-  .update-indicator{font-size:11px;color:var(--text-faint);text-align:right;margin-bottom:14px;}
-  .update-indicator button { background:none; border:none; color:var(--amber); cursor:pointer; text-decoration:underline; font-size:11px; font-family:'Inter',sans-serif; }
+  .update-indicator{font-size:11px;color:var(--text-faint);text-align:right;margin-bottom:14px;display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;}
+  .update-indicator button { background:none; border:none; color:var(--amber); cursor:pointer; text-decoration:underline; font-size:11px; font-family:'Inter',sans-serif; padding:0; }
+  .update-indicator .status-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--verde); box-shadow:0 0 6px var(--verde); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
   /* CARDS RESUMO */
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
@@ -148,7 +150,9 @@
   </header>
 
   <div class="update-indicator" id="updateStatus">
-    Carregando dados... <button onclick="carregarDados()">(Atualizar)</button>
+    <span class="status-dot"></span>
+    <span id="updateText">Carregando dados...</span>
+    <button onclick="carregarDados()">🔄 Atualizar agora</button>
   </div>
 
   <div class="summary" id="summaryCards"></div>
@@ -172,24 +176,38 @@
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbykNNKd64T7-T48mddNYU4gcHEpYzKbrXf8b7W_9JGf7q3yONQ3AP45XDCO-rvw2iWNrg/exec';
 
+// Tempo de auto-refresh em segundos (90 = 1min30s)
+const AUTO_REFRESH_SECONDS = 90;
+
 let viaturas = [];
 let filtroAtivo = 'Todas';
 let filtroStatusAtivo = 'Operante'; 
 let termoBusca = '';
+let ultimaAtualizacao = null;
+
+// Controle do auto-refresh
+let autoRefreshTimer = null;
+let countdownTimer = null;
+let segundosRestantes = AUTO_REFRESH_SECONDS;
 
 // ============================================================
 // COMUNICAÇÃO COM O BACKEND
 // ============================================================
 async function carregarDados() {
-  document.getElementById('updateStatus').innerText = 'Carregando dados...';
+  // Não recarrega se um modal está aberto (evita fechar enquanto edita)
+  const modal = document.getElementById('actionModal');
+  if (modal.style.display === 'flex') return;
+
   try {
     const resp = await fetch(API_URL);
     viaturas = await resp.json();
     renderTudo();
-    document.getElementById('updateStatus').innerText = 'Última atualização: ' + new Date().toLocaleString('pt-BR');
+    ultimaAtualizacao = new Date();
+    segundosRestantes = AUTO_REFRESH_SECONDS;
+    atualizarIndicador();
   } catch(e) {
     console.error(e);
-    document.getElementById('updateStatus').innerText = 'Erro ao conectar com a planilha.';
+    document.getElementById('updateText').innerText = 'Erro ao conectar com a planilha.';
   }
 }
 
@@ -203,10 +221,54 @@ async function enviarParaPlanilha(action, dados) {
     });
     viaturas = await resp.json();
     renderTudo();
+    ultimaAtualizacao = new Date();
+    segundosRestantes = AUTO_REFRESH_SECONDS;
+    atualizarIndicador();
   } catch(e) {
     console.error('Erro ao salvar:', e);
     alert('Erro ao salvar na planilha. Verifique sua conexão.');
   }
+}
+
+// ============================================================
+// AUTO-REFRESH
+// ============================================================
+function iniciarAutoRefresh() {
+  pararAutoRefresh();
+  segundosRestantes = AUTO_REFRESH_SECONDS;
+  
+  // Contador de segundos (atualiza a cada 1s)
+  countdownTimer = setInterval(() => {
+    segundosRestantes--;
+    if (segundosRestantes <= 0) segundosRestantes = AUTO_REFRESH_SECONDS;
+    atualizarIndicador();
+  }, 1000);
+  
+  // Timer principal (recarrega a cada N segundos)
+  autoRefreshTimer = setInterval(() => {
+    carregarDados();
+  }, AUTO_REFRESH_SECONDS * 1000);
+}
+
+function pararAutoRefresh() {
+  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+}
+
+function atualizarIndicador() {
+  const text = document.getElementById('updateText');
+  
+  if (!ultimaAtualizacao) {
+    text.innerText = 'Carregando dados...';
+    return;
+  }
+  
+  const hora = ultimaAtualizacao.toLocaleTimeString('pt-BR');
+  const min = Math.floor(segundosRestantes / 60);
+  const seg = segundosRestantes % 60;
+  const tempoFormatado = min > 0 ? `${min}m ${String(seg).padStart(2,'0')}s` : `${seg}s`;
+  
+  text.innerText = `Atualizado às ${hora} • Próxima atualização em ${tempoFormatado}`;
 }
 
 // ============================================================
@@ -295,12 +357,11 @@ function renderBlocos() {
     grupos[tipo].push(v);
   });
 
-  // Ordena os tipos alfabeticamente
   const tiposOrdenados = Object.keys(grupos).sort((a, b) => a.localeCompare(b));
 
   let html = '';
   for (const tipo of tiposOrdenados) {
-    // ⬇️ ORDENAÇÃO DOS CARDS DENTRO DO BLOCO (alfanumérica crescente por prefixo)
+    // Ordena os cards dentro do bloco por prefixo (alfanumérica crescente)
     const items = grupos[tipo].sort((a, b) => 
       String(a.prefixo || '').localeCompare(String(b.prefixo || ''), undefined, { numeric: true, sensitivity: 'base' })
     );
@@ -492,7 +553,19 @@ document.getElementById('addBtn').onclick = abrirModalNovo;
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-carregarDados();
+carregarDados().then(() => {
+  iniciarAutoRefresh();
+});
+
+// Pausa o auto-refresh quando a aba do navegador não está visível
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    pararAutoRefresh();
+  } else {
+    carregarDados();
+    iniciarAutoRefresh();
+  }
+});
 </script>
 </body>
 </html>
