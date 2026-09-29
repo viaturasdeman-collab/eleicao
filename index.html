@@ -33,25 +33,22 @@
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
   /* CARDS RESUMO */
-  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
   .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s ease;}
   .summary-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;}
   .summary-card.total::before{background:var(--amber);}
   .summary-card.operantes::before{background:var(--azul);}
   .summary-card.baixadas::before{background:var(--vermelho);}
-  .summary-card.semcontato::before{background:var(--roxo);}
   .summary-card .label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-family:'IBM Plex Mono',monospace;}
   .summary-card .value{font-family:'Rajdhani',sans-serif;font-size:34px;font-weight:700;line-height:1;}
   .summary-card.total .value{color:var(--amber);}
   .summary-card.operantes .value{color:var(--azul);}
   .summary-card.baixadas .value{color:var(--vermelho);}
-  .summary-card.semcontato .value{color:var(--roxo);}
   .summary-card:hover { background: var(--surface-2); transform: translateY(-2px); }
   .summary-card.active { background: var(--surface-2); border-color: var(--text-dim); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
   .summary-card.active.total { border-color: var(--amber); box-shadow: 0 0 15px rgba(232,169,58,0.2); }
   .summary-card.active.operantes { border-color: var(--azul); box-shadow: 0 0 15px rgba(0,171,251,0.2); }
   .summary-card.active.baixadas { border-color: var(--vermelho); box-shadow: 0 0 15px rgba(239,83,80,0.2); }
-  .summary-card.active.semcontato { border-color: var(--roxo); box-shadow: 0 0 15px rgba(177,140,255,0.2); }
 
   /* TOOLBAR */
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -95,13 +92,12 @@
   .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
   .veh-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
   .veh-card.baixada{opacity:.92;}
-  .veh-card.sem-contato-alerta { border-color: rgba(177,140,255,.4); }
   
   .veh-header{display:flex;justify-content:space-between;align-items:center;}
   .veh-prefix{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;}
   .veh-placa{font-size:12px;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-weight:600;margin-left:6px;}
   
-  /* LOCALIZAÇÃO/UNIDADE - AGORA COM DESTAQUE */
+  /* LOCALIZAÇÃO/UNIDADE - COM DESTAQUE */
   .veh-unidade{
     font-size:14px;
     color:var(--text);
@@ -127,7 +123,7 @@
   .badge.operante{background:rgba(0,171,251,.15);color:var(--azul);border-color:var(--azul);}
   .badge.baixada{background:rgba(239,83,80,.15);color:var(--vermelho);border-color:var(--vermelho);}
   
-  /* PROPRIEDADE - AGORA DISCRETA (SÓ TEXTO CINZA) */
+  /* PROPRIEDADE - DISCRETA (SÓ TEXTO CINZA) */
   .badge.propria{
     background:transparent;
     border:none;
@@ -149,8 +145,6 @@
     font-weight:500;
   }
   .badge.locada::before{content:"— ";color:var(--text-faint);}
-  
-  .badge.sem-contato{background:rgba(177,140,255,.15);color:var(--roxo);border-color:var(--roxo);}
 
   /* MODAL */
   .modal-overlay{position:fixed;inset:0;background:rgba(16,20,26,.85);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
@@ -319,7 +313,6 @@ function renderResumo() {
   const total = viaturas.length;
   const operantes = viaturas.filter(v => v.status === 'Operante').length;
   const baixadas = viaturas.filter(v => v.status === 'Baixada').length;
-  const semContato = viaturas.filter(v => v.status === 'Operante' && (!v.contato || String(v.contato).trim() === '')).length;
 
   document.getElementById('summaryCards').innerHTML = `
     <div class="summary-card total ${filtroStatusAtivo === 'Total' ? 'active' : ''}" onclick="mudarFiltroStatus('Total')">
@@ -330,9 +323,6 @@ function renderResumo() {
     </div>
     <div class="summary-card baixadas ${filtroStatusAtivo === 'Baixada' ? 'active' : ''}" onclick="mudarFiltroStatus('Baixada')">
       <div class="label">Baixadas</div><div class="value">${baixadas}</div>
-    </div>
-    <div class="summary-card semcontato ${filtroStatusAtivo === 'SemContato' ? 'active' : ''}" onclick="mudarFiltroStatus('SemContato')">
-      <div class="label">Sem Contato</div><div class="value">${semContato}</div>
     </div>
   `;
 }
@@ -374,8 +364,6 @@ function renderBlocos() {
     filtradas = filtradas.filter(v => v.status === 'Operante');
   } else if (filtroStatusAtivo === 'Baixada') {
     filtradas = filtradas.filter(v => v.status === 'Baixada');
-  } else if (filtroStatusAtivo === 'SemContato') {
-    filtradas = filtradas.filter(v => v.status === 'Operante' && (!v.contato || String(v.contato).trim() === ''));
   }
 
   const container = document.getElementById('blocksContainer');
@@ -420,17 +408,12 @@ function renderBlocos() {
 
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
-  const semContato = !v.contato || String(v.contato).trim() === '';
   
   const propText = v.propriedade === 'Locada' 
     ? `Locada ${v.empresa ? `(${v.empresa})` : ''}`
     : `Própria`;
 
-  const contatoDisplay = semContato 
-    ? (v.status === 'Operante' ? `<span class="badge sem-contato">⚠ Sem contato</span>` : `<span style="color:var(--text-faint);">—</span>`)
-    : `<span style="color:var(--text);">${v.contato}</span>`;
-
-  const cardClass = (isBaixada ? 'baixada' : '') + (semContato && v.status === 'Operante' ? ' sem-contato-alerta' : '');
+  const cardClass = isBaixada ? 'baixada' : '';
 
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
 
@@ -443,7 +426,7 @@ function renderCard(v) {
       <div class="veh-unidade">📍 ${v.unidade}</div>
       <div class="veh-info">
         <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'}</div>
-        <div><span class="label">Contato:</span> ${contatoDisplay}</div>
+        <div><span class="label">Contato:</span> ${v.contato || '—'}</div>
         <div><span class="label">Propriedade:</span> <span class="${v.propriedade === 'Locada' ? 'badge locada' : 'badge propria'}">${propText}</span></div>
         ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
       </div>
