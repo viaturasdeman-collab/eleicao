@@ -112,6 +112,36 @@
     display:block;
     margin:2px 0;
   }
+
+  /* RESPONSÁVEL - DESTAQUE ESPECIAL */
+  .veh-responsavel{
+    background:linear-gradient(90deg, rgba(177,140,255,.12), rgba(177,140,255,.03));
+    border-left:3px solid var(--roxo);
+    padding:6px 12px;
+    border-radius:6px;
+    margin:2px 0;
+    font-size:12px;
+  }
+  .veh-responsavel .resp-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--roxo);
+    display:block;
+    margin-bottom:2px;
+  }
+  .veh-responsavel .resp-nome{
+    font-family:'Rajdhani',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--text);
+  }
+  .veh-responsavel .resp-cargo{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-left:6px;
+  }
   
   .veh-info{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;}
   .veh-info span.label{color:var(--text-dim);font-size:11px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
@@ -125,24 +155,13 @@
   
   /* PROPRIEDADE - DISCRETA (SÓ TEXTO CINZA) */
   .badge.propria{
-    background:transparent;
-    border:none;
-    color:var(--text-dim);
-    padding:0;
-    font-family:'Inter',sans-serif;
-    font-size:12px;
-    font-weight:500;
+    background:transparent;border:none;color:var(--text-dim);padding:0;
+    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
   }
   .badge.propria::before{content:"— ";color:var(--text-faint);}
-  
   .badge.locada{
-    background:transparent;
-    border:none;
-    color:var(--text-dim);
-    padding:0;
-    font-family:'Inter',sans-serif;
-    font-size:12px;
-    font-weight:500;
+    background:transparent;border:none;color:var(--text-dim);padding:0;
+    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
   }
   .badge.locada::before{content:"— ";color:var(--text-faint);}
 
@@ -177,7 +196,7 @@
   <header>
     <div class="htitle">
       <div class="eyebrow">DEMAN · Apoio Visual à Eleição</div>
-      <h1>Eleições 2026</h1>
+      <h1>Painel de Viaturas e Equipes</h1>
     </div>
   </header>
 
@@ -192,7 +211,7 @@
   <div class="toolbar">
     <div class="tabs" id="tabsContainer"></div>
     <div class="right-tools">
-      <input type="text" id="search" placeholder="Buscar prefixo, condutor, placa...">
+      <input type="text" id="search" placeholder="Buscar prefixo, condutor, responsável...">
       <button class="btn" id="addBtn">+ Nova Viatura</button>
     </div>
   </div>
@@ -208,7 +227,6 @@
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbykNNKd64T7-T48mddNYU4gcHEpYzKbrXf8b7W_9JGf7q3yONQ3AP45XDCO-rvw2iWNrg/exec';
 
-// Tempo de auto-refresh em segundos (90 = 1min30s)
 const AUTO_REFRESH_SECONDS = 90;
 
 let viaturas = [];
@@ -217,7 +235,6 @@ let filtroStatusAtivo = 'Operante';
 let termoBusca = '';
 let ultimaAtualizacao = null;
 
-// Controle do auto-refresh
 let autoRefreshTimer = null;
 let countdownTimer = null;
 let segundosRestantes = AUTO_REFRESH_SECONDS;
@@ -350,6 +367,7 @@ function renderBlocos() {
     filtradas = filtradas.filter(v => 
       String(v.prefixo || '').toLowerCase().includes(t) || 
       String(v.condutor || '').toLowerCase().includes(t) || 
+      String(v.responsavel || '').toLowerCase().includes(t) ||
       String(v.unidade || '').toLowerCase().includes(t) ||
       String(v.placa || '').toLowerCase().includes(t) ||
       String(v.contato || '').toLowerCase().includes(t)
@@ -414,8 +432,15 @@ function renderCard(v) {
     : `Própria`;
 
   const cardClass = isBaixada ? 'baixada' : '';
-
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
+
+  // Bloco do responsável (só aparece se preenchido)
+  const responsavelHtml = v.responsavel && String(v.responsavel).trim() !== ''
+    ? `<div class="veh-responsavel">
+        <span class="resp-label">Coordenador / Supervisor</span>
+        <span class="resp-nome">${v.responsavel}</span>
+      </div>`
+    : '';
 
   return `
     <div class="veh-card ${cardClass}">
@@ -424,6 +449,7 @@ function renderCard(v) {
         <span class="badge ${isBaixada ? 'baixada' : 'operante'}">${v.status}</span>
       </div>
       <div class="veh-unidade">📍 ${v.unidade}</div>
+      ${responsavelHtml}
       <div class="veh-info">
         <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'}</div>
         <div><span class="label">Contato:</span> ${v.contato || '—'}</div>
@@ -436,7 +462,7 @@ function renderCard(v) {
           <svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
         </button>
         <button class="btn ${isBaixada ? 'primary' : 'danger'}" style="padding: 6px 10px; font-size: 11px;" onclick="alternarStatus('${v.prefixo}')">
-          ${isBaixada ? '✅ Ativar' : '⛔ Baixar'}
+          ${isBaixada ? '✅ Operar' : '⛔ Baixar'}
         </button>
       </div>
     </div>
@@ -490,6 +516,7 @@ function abrirModalNovo() {
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
+    <label>Coordenador / Supervisor <input type="text" id="fResponsavel" autocomplete="off" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria">Própria</option><option value="Locada">Locada</option>
     </select></label>
@@ -517,6 +544,7 @@ function abrirModalEditar(index) {
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
+    <label>Coordenador / Supervisor <input type="text" id="fResponsavel" autocomplete="off" value="${v.responsavel || ''}" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria" ${v.propriedade === 'Própria' ? 'selected' : ''}>Própria</option>
       <option value="Locada" ${v.propriedade === 'Locada' ? 'selected' : ''}>Locada</option>
@@ -542,6 +570,7 @@ document.getElementById('modalConfirm').onclick = () => {
     placa: document.getElementById('fPlaca').value.trim(),
     tipo: document.getElementById('fTipo').value.trim(),
     unidade: document.getElementById('fUnidade').value.trim(),
+    responsavel: document.getElementById('fResponsavel').value.trim(),
     propriedade: document.getElementById('fPropriedade').value,
     empresa: document.getElementById('fEmpresa').value.trim(),
     cartao: document.getElementById('fCartao').value.trim(),
