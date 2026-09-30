@@ -17,7 +17,6 @@
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1280px;margin:0 auto;padding:20px 18px 60px;}
 
-  /* HEADER */
   header{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
     padding:20px 22px;background:linear-gradient(135deg,var(--bg-elev),var(--surface));
     border:1px solid var(--border);border-radius:14px;margin-bottom:18px;position:relative;overflow:hidden;}
@@ -26,13 +25,11 @@
   .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;}
   h1{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;margin:0;}
 
-  /* INDICADOR */
   .update-indicator{font-size:11px;color:var(--text-faint);text-align:right;margin-bottom:14px;display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;}
   .update-indicator button { background:none; border:none; color:var(--amber); cursor:pointer; text-decoration:underline; font-size:11px; font-family:'Inter',sans-serif; padding:0; }
   .update-indicator .status-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--verde); box-shadow:0 0 6px var(--verde); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
-  /* CARDS RESUMO */
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
   .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s ease;}
   .summary-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;}
@@ -50,7 +47,6 @@
   .summary-card.active.operantes { border-color: var(--azul); box-shadow: 0 0 15px rgba(0,171,251,0.2); }
   .summary-card.active.baixadas { border-color: var(--vermelho); box-shadow: 0 0 15px rgba(239,83,80,0.2); }
 
-  /* TOOLBAR */
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
   .tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;overflow-x:auto;}
   .tab{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;padding:8px 16px;border-radius:7px;cursor:pointer;color:var(--text-dim);border:none;background:transparent;white-space:nowrap;}
@@ -59,14 +55,12 @@
   input[type=text]{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;min-width:0;font-family:'Inter',sans-serif;}
   input:focus{outline:1px solid var(--amber);}
 
-  /* BOTÕES */
   .btn{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;padding:9px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);white-space:nowrap;}
   .btn:hover{border-color:var(--amber);}
   .btn.primary{background:var(--amber);color:#1a1204;border-color:var(--amber);}
   .btn.ghost{background:transparent;}
   .btn.danger:hover{border-color:var(--vermelho);color:var(--vermelho);}
 
-  /* BOTÃO DE ÍCONE (LÁPIS) */
   .btn-icon {
     width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -77,7 +71,6 @@
   .btn-icon:hover { background: var(--surface); color: var(--amber); border-color: var(--amber); }
   .btn-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* BLOCOS */
   .blocks-container{display:flex;flex-direction:column;gap:20px;}
   .block{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
   .block-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--surface);cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
@@ -88,7 +81,6 @@
   .block[open] .block-toggle{transform:rotate(180deg);}
   .block-content{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
 
-  /* CARDS DE VIATURA */
   .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;transition:transform .15s, box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
   .veh-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
   .veh-card.baixada{opacity:.92;}
@@ -97,50 +89,25 @@
   .veh-prefix{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;}
   .veh-placa{font-size:12px;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-weight:600;margin-left:6px;}
   
-  /* LOCALIZAÇÃO/UNIDADE - COM DESTAQUE */
   .veh-unidade{
-    font-size:14px;
-    color:var(--text);
-    font-family:'Rajdhani',sans-serif;
-    font-weight:700;
-    letter-spacing:.05em;
-    text-transform:uppercase;
+    font-size:14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;
+    letter-spacing:.05em;text-transform:uppercase;
     background:linear-gradient(90deg, rgba(232,169,58,.12), rgba(232,169,58,.04));
     border-left:3px solid var(--amber);
-    padding:6px 12px;
-    border-radius:6px;
-    display:block;
-    margin:2px 0;
+    padding:6px 12px;border-radius:6px;display:block;margin:2px 0;
   }
 
-  /* RESPONSÁVEL - DESTAQUE ESPECIAL */
   .veh-responsavel{
     background:linear-gradient(90deg, rgba(177,140,255,.12), rgba(177,140,255,.03));
     border-left:3px solid var(--roxo);
-    padding:6px 12px;
-    border-radius:6px;
-    margin:2px 0;
-    font-size:12px;
-  }
-  .veh-responsavel .resp-label{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-    color:var(--roxo);
-    display:block;
-    margin-bottom:2px;
-  }
-  .veh-responsavel .resp-nome{
-    font-family:'Rajdhani',sans-serif;
-    font-weight:600;
-    font-size:14px;
-    color:var(--text);
+    padding:6px 12px;border-radius:6px;margin:2px 0;
   }
   .veh-responsavel .resp-cargo{
-    font-size:11px;
-    color:var(--text-dim);
-    margin-left:6px;
+    font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--roxo);display:block;margin-bottom:2px;font-weight:600;
+  }
+  .veh-responsavel .resp-nome{
+    font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px;color:var(--text);
   }
   
   .veh-info{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.4;}
@@ -148,24 +115,16 @@
   .veh-obs{font-size:11px;color:var(--text-faint);font-style:italic;margin-top:4px;}
   .veh-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;border-top:1px solid var(--border);padding-top:8px;}
 
-  /* BADGES */
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--border);white-space:nowrap;}
   .badge.operante{background:rgba(0,171,251,.15);color:var(--azul);border-color:var(--azul);}
   .badge.baixada{background:rgba(239,83,80,.15);color:var(--vermelho);border-color:var(--vermelho);}
   
-  /* PROPRIEDADE - DISCRETA (SÓ TEXTO CINZA) */
-  .badge.propria{
+  .badge.propria, .badge.locada {
     background:transparent;border:none;color:var(--text-dim);padding:0;
     font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
   }
-  .badge.propria::before{content:"— ";color:var(--text-faint);}
-  .badge.locada{
-    background:transparent;border:none;color:var(--text-dim);padding:0;
-    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
-  }
-  .badge.locada::before{content:"— ";color:var(--text-faint);}
+  .badge.propria::before, .badge.locada::before {content:"— ";color:var(--text-faint);}
 
-  /* MODAL */
   .modal-overlay{position:fixed;inset:0;background:rgba(16,20,26,.85);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
   .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;width:100%;max-width:500px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto;}
   .modal-box h2{font-family:'Rajdhani',sans-serif;font-size:20px;margin:0;color:var(--amber);}
@@ -303,17 +262,11 @@ function pararAutoRefresh() {
 
 function atualizarIndicador() {
   const text = document.getElementById('updateText');
-  
-  if (!ultimaAtualizacao) {
-    text.innerText = 'Carregando dados...';
-    return;
-  }
-  
+  if (!ultimaAtualizacao) { text.innerText = 'Carregando dados...'; return; }
   const hora = ultimaAtualizacao.toLocaleTimeString('pt-BR');
   const min = Math.floor(segundosRestantes / 60);
   const seg = segundosRestantes % 60;
   const tempoFormatado = min > 0 ? `${min}m ${String(seg).padStart(2,'0')}s` : `${seg}s`;
-  
   text.innerText = `Atualizado às ${hora} • Próxima atualização em ${tempoFormatado}`;
 }
 
@@ -434,10 +387,15 @@ function renderCard(v) {
   const cardClass = isBaixada ? 'baixada' : '';
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
 
-  // Bloco do responsável (só aparece se preenchido)
-  const responsavelHtml = v.responsavel && String(v.responsavel).trim() !== ''
+  // Bloco do responsável: usa "cargo" como etiqueta e "responsavel" como nome
+  const temResponsavel = v.responsavel && String(v.responsavel).trim() !== '';
+  const cargoTexto = (v.cargo && String(v.cargo).trim() !== '') 
+    ? String(v.cargo).trim() 
+    : 'Responsável';
+  
+  const responsavelHtml = temResponsavel
     ? `<div class="veh-responsavel">
-        <span class="resp-label">Coordenador / Supervisor</span>
+        <span class="resp-cargo">${cargoTexto}</span>
         <span class="resp-nome">${v.responsavel}</span>
       </div>`
     : '';
@@ -516,7 +474,12 @@ function abrirModalNovo() {
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
-    <label>Coordenador / Supervisor <input type="text" id="fResponsavel" autocomplete="off" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
+    <label>Cargo <select id="fCargo">
+      <option value="">— Nenhum —</option>
+      <option value="Coordenador">Coordenador</option>
+      <option value="Supervisor">Supervisor</option>
+    </select></label>
+    <label>Responsável <input type="text" id="fResponsavel" autocomplete="off" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria">Própria</option><option value="Locada">Locada</option>
     </select></label>
@@ -544,7 +507,12 @@ function abrirModalEditar(index) {
       <option value="1º GBM"><option value="2º GBM"><option value="3º GBM"><option value="4º GBM">
       <option value="5º GBM"><option value="6º GBM"><option value="7º GBM"><option value="DEMAN">
     </datalist>
-    <label>Coordenador / Supervisor <input type="text" id="fResponsavel" autocomplete="off" value="${v.responsavel || ''}" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
+    <label>Cargo <select id="fCargo">
+      <option value="" ${!v.cargo ? 'selected' : ''}>— Nenhum —</option>
+      <option value="Coordenador" ${v.cargo === 'Coordenador' ? 'selected' : ''}>Coordenador</option>
+      <option value="Supervisor" ${v.cargo === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
+    </select></label>
+    <label>Responsável <input type="text" id="fResponsavel" autocomplete="off" value="${v.responsavel || ''}" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
     <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
       <option value="Própria" ${v.propriedade === 'Própria' ? 'selected' : ''}>Própria</option>
       <option value="Locada" ${v.propriedade === 'Locada' ? 'selected' : ''}>Locada</option>
@@ -570,6 +538,7 @@ document.getElementById('modalConfirm').onclick = () => {
     placa: document.getElementById('fPlaca').value.trim(),
     tipo: document.getElementById('fTipo').value.trim(),
     unidade: document.getElementById('fUnidade').value.trim(),
+    cargo: document.getElementById('fCargo').value,
     responsavel: document.getElementById('fResponsavel').value.trim(),
     propriedade: document.getElementById('fPropriedade').value,
     empresa: document.getElementById('fEmpresa').value.trim(),
@@ -582,9 +551,7 @@ document.getElementById('modalConfirm').onclick = () => {
   if (!dados.prefixo) return alert('O prefixo é obrigatório!');
 
   const isNew = editandoPrefixoOriginal === null;
-  
   enviarParaPlanilha('save', { viatura: dados, isNew: isNew, oldPrefixo: editandoPrefixoOriginal });
-  
   modal.style.display = 'none';
 };
 
