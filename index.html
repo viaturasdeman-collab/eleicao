@@ -28,8 +28,10 @@
 
   .update-indicator{font-size:11px;color:var(--text-faint);text-align:right;margin-bottom:14px;display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;}
   .update-indicator button { background:none; border:none; color:var(--amber); cursor:pointer; text-decoration:underline; font-size:11px; font-family:'Inter',sans-serif; padding:0; }
-  .update-indicator .status-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--verde); box-shadow:0 0 6px var(--verde); animation: pulse 2s infinite; }
+  .update-indicator .status-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--verde); box-shadow:0 0 6px var(--verde); animation: pulse 2s infinite; transition: all .3s; }
+  .update-indicator .status-dot.syncing { background:var(--amber); box-shadow:0 0 8px var(--amber); animation: spin 1s linear infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+  @keyframes spin { 0%{opacity:1;} 50%{opacity:.3;} 100%{opacity:1;} }
 
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
   .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s ease;}
@@ -49,18 +51,13 @@
   .summary-card.active.baixadas { border-color: var(--vermelho); box-shadow: 0 0 15px rgba(239,83,80,0.2); }
 
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
-  
-  .tabs{
-    display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);
+  .tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);
     border-radius:10px;padding:4px;overflow-x:auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
+    scrollbar-width: thin;scrollbar-color: var(--border) transparent;}
   .tabs::-webkit-scrollbar { height: 6px; }
   .tabs::-webkit-scrollbar-track { background: transparent; }
   .tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .tabs::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
-  
   .tab{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;padding:8px 16px;border-radius:7px;cursor:pointer;color:var(--text-dim);border:none;background:transparent;white-space:nowrap;}
   .tab.active{background:var(--surface-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border);}
   .right-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
@@ -73,13 +70,8 @@
   .btn.ghost{background:transparent;}
   .btn.danger:hover{border-color:var(--vermelho);color:var(--vermelho);}
 
-  .btn-icon {
-    width: 34px; height: 34px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--surface-2); border: 1px solid var(--border);
-    color: var(--text-dim); cursor: pointer; transition: all 0.2s ease;
-    padding: 0; flex-shrink: 0;
-  }
+  .btn-icon {width: 34px; height: 34px; border-radius: 50%;display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 1px solid var(--border);color: var(--text-dim); cursor: pointer; transition: all 0.2s ease;padding: 0; flex-shrink: 0;}
   .btn-icon:hover { background: var(--surface); color: var(--amber); border-color: var(--amber); }
   .btn-icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -109,7 +101,6 @@
     padding:6px 12px;border-radius:6px;display:block;margin:2px 0;
   }
 
-  /* ===== COORDENADOR / SUPERVISOR (AZUL-AÇO) ===== */
   .veh-responsavel{
     background:linear-gradient(90deg, rgba(127,168,217,.10), rgba(127,168,217,.02));
     border-left:3px solid var(--aco);
@@ -173,7 +164,7 @@
   </header>
 
   <div class="update-indicator" id="updateStatus">
-    <span class="status-dot"></span>
+    <span class="status-dot" id="statusDot"></span>
     <span id="updateText">Carregando dados...</span>
     <button onclick="carregarDados()">🔄 Atualizar agora</button>
   </div>
@@ -202,13 +193,20 @@ let filtroAtivo = 'Todas';
 let filtroStatusAtivo = 'Operante'; 
 let termoBusca = '';
 let ultimaAtualizacao = null;
-let autoRefreshTimer = null;
-let countdownTimer = null;
+let refreshTimer = null; // TIMER ÚNICO
 let segundosRestantes = AUTO_REFRESH_SECONDS;
 
+// ============================================================
+// CARREGAR DADOS
+// ============================================================
 async function carregarDados() {
   const modal = document.getElementById('actionModal');
   if (modal.style.display === 'flex') return;
+
+  // Feedback visual: ponto pisca em âmbar enquanto está sincronizando
+  const dot = document.getElementById('statusDot');
+  dot.classList.add('syncing');
+
   try {
     const resp = await fetch(API_URL);
     viaturas = await resp.json();
@@ -219,6 +217,8 @@ async function carregarDados() {
   } catch(e) {
     console.error(e);
     document.getElementById('updateText').innerText = 'Erro ao conectar com a planilha.';
+  } finally {
+    dot.classList.remove('syncing');
   }
 }
 
@@ -241,20 +241,27 @@ async function enviarParaPlanilha(action, dados) {
   }
 }
 
+// ============================================================
+// AUTO-REFRESH (TIMER ÚNICO - CORRIGIDO)
+// ============================================================
 function iniciarAutoRefresh() {
   pararAutoRefresh();
   segundosRestantes = AUTO_REFRESH_SECONDS;
-  countdownTimer = setInterval(() => {
+  atualizarIndicador();
+
+  // Um único timer: decrementa e, ao chegar em 0, dispara o refresh
+  refreshTimer = setInterval(() => {
     segundosRestantes--;
-    if (segundosRestantes <= 0) segundosRestantes = AUTO_REFRESH_SECONDS;
+    if (segundosRestantes <= 0) {
+      carregarDados(); // Dispara o refresh
+      segundosRestantes = AUTO_REFRESH_SECONDS; // Reinicia a contagem
+    }
     atualizarIndicador();
   }, 1000);
-  autoRefreshTimer = setInterval(() => { carregarDados(); }, AUTO_REFRESH_SECONDS * 1000);
 }
 
 function pararAutoRefresh() {
-  if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
-  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
 }
 
 function atualizarIndicador() {
@@ -267,6 +274,9 @@ function atualizarIndicador() {
   text.innerText = `Atualizado às ${hora} • Próxima atualização em ${tempoFormatado}`;
 }
 
+// ============================================================
+// RENDERIZAÇÃO
+// ============================================================
 function renderTudo() {
   renderResumo();
   renderAbas();
@@ -514,10 +524,17 @@ function alternarStatus(prefixo) {
 
 document.getElementById('addBtn').onclick = abrirModalNovo;
 
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
 carregarDados().then(() => { iniciarAutoRefresh(); });
+
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { pararAutoRefresh(); }
-  else { carregarDados(); iniciarAutoRefresh(); }
+  if (document.hidden) {
+    pararAutoRefresh();
+  } else {
+    carregarDados().then(() => { iniciarAutoRefresh(); });
+  }
 });
 </script>
 </body>
