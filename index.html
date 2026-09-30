@@ -12,7 +12,7 @@
     --border:#303A47; --text:#E7ECF2; --text-dim:#93A0B0; --text-faint:#5C6879;
     --amber:#E8A93A;
     --verde:#3DDC84; --azul:#00abfb; --vermelho:#EF5350; --roxo:#B18CFF;
-    --teal:#40E0D0;
+    --aco:#7FA8D9;
   }
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
@@ -50,14 +50,13 @@
 
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;}
   
-  /* ===== BARRA DE ABAS COM SCROLLBAR DISCRETA ===== */
   .tabs{
     display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);
     border-radius:10px;padding:4px;overflow-x:auto;
-    scrollbar-width: thin;                        /* Firefox */
-    scrollbar-color: var(--border) transparent;   /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
-  .tabs::-webkit-scrollbar { height: 6px; }       /* Chrome/Safari/Edge */
+  .tabs::-webkit-scrollbar { height: 6px; }
   .tabs::-webkit-scrollbar-track { background: transparent; }
   .tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .tabs::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
@@ -110,15 +109,15 @@
     padding:6px 12px;border-radius:6px;display:block;margin:2px 0;
   }
 
-  /* ===== COORDENADOR / SUPERVISOR (TEAL) ===== */
+  /* ===== COORDENADOR / SUPERVISOR (AZUL-AÇO) ===== */
   .veh-responsavel{
-    background:linear-gradient(90deg, rgba(64,224,208,.12), rgba(64,224,208,.03));
-    border-left:3px solid var(--teal);
+    background:linear-gradient(90deg, rgba(127,168,217,.10), rgba(127,168,217,.02));
+    border-left:3px solid var(--aco);
     padding:6px 12px;border-radius:6px;margin:2px 0;
   }
   .veh-responsavel .resp-cargo{
     font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
-    letter-spacing:.08em;color:var(--teal);display:block;margin-bottom:2px;font-weight:600;
+    letter-spacing:.08em;color:var(--aco);display:block;margin-bottom:2px;font-weight:600;
   }
   .veh-responsavel .resp-nome{
     font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px;color:var(--text);
@@ -195,11 +194,7 @@
 </div>
 
 <script>
-// ============================================================
-// CONFIGURAÇÃO - SUA URL DO APPS SCRIPT
-// ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbykNNKd64T7-T48mddNYU4gcHEpYzKbrXf8b7W_9JGf7q3yONQ3AP45XDCO-rvw2iWNrg/exec';
-
 const AUTO_REFRESH_SECONDS = 90;
 
 let viaturas = [];
@@ -207,18 +202,13 @@ let filtroAtivo = 'Todas';
 let filtroStatusAtivo = 'Operante'; 
 let termoBusca = '';
 let ultimaAtualizacao = null;
-
 let autoRefreshTimer = null;
 let countdownTimer = null;
 let segundosRestantes = AUTO_REFRESH_SECONDS;
 
-// ============================================================
-// COMUNICAÇÃO COM O BACKEND
-// ============================================================
 async function carregarDados() {
   const modal = document.getElementById('actionModal');
   if (modal.style.display === 'flex') return;
-
   try {
     const resp = await fetch(API_URL);
     viaturas = await resp.json();
@@ -251,22 +241,15 @@ async function enviarParaPlanilha(action, dados) {
   }
 }
 
-// ============================================================
-// AUTO-REFRESH
-// ============================================================
 function iniciarAutoRefresh() {
   pararAutoRefresh();
   segundosRestantes = AUTO_REFRESH_SECONDS;
-  
   countdownTimer = setInterval(() => {
     segundosRestantes--;
     if (segundosRestantes <= 0) segundosRestantes = AUTO_REFRESH_SECONDS;
     atualizarIndicador();
   }, 1000);
-  
-  autoRefreshTimer = setInterval(() => {
-    carregarDados();
-  }, AUTO_REFRESH_SECONDS * 1000);
+  autoRefreshTimer = setInterval(() => { carregarDados(); }, AUTO_REFRESH_SECONDS * 1000);
 }
 
 function pararAutoRefresh() {
@@ -284,9 +267,6 @@ function atualizarIndicador() {
   text.innerText = `Atualizado às ${hora} • Próxima atualização em ${tempoFormatado}`;
 }
 
-// ============================================================
-// FUNÇÕES DE RENDERIZAÇÃO
-// ============================================================
 function renderTudo() {
   renderResumo();
   renderAbas();
@@ -316,7 +296,6 @@ function renderAbas() {
   const temDeman = todasUnidades.includes('DEMAN');
   let outras = todasUnidades.filter(u => u !== 'DEMAN');
   outras.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-  
   const unidadesOrdenadas = ['Todas'];
   if (temDeman) unidadesOrdenadas.push('DEMAN');
   unidadesOrdenadas.push(...outras);
@@ -328,7 +307,6 @@ function renderAbas() {
 
 function renderBlocos() {
   let filtradas = viaturas;
-  
   if (termoBusca) {
     const t = termoBusca.toLowerCase();
     filtradas = filtradas.filter(v => 
@@ -340,19 +318,11 @@ function renderBlocos() {
       String(v.contato || '').toLowerCase().includes(t)
     );
   }
-
-  if (filtroAtivo !== 'Todas') {
-    filtradas = filtradas.filter(v => v.unidade === filtroAtivo);
-  }
-
-  if (filtroStatusAtivo === 'Operante') {
-    filtradas = filtradas.filter(v => v.status === 'Operante');
-  } else if (filtroStatusAtivo === 'Baixada') {
-    filtradas = filtradas.filter(v => v.status === 'Baixada');
-  }
+  if (filtroAtivo !== 'Todas') { filtradas = filtradas.filter(v => v.unidade === filtroAtivo); }
+  if (filtroStatusAtivo === 'Operante') { filtradas = filtradas.filter(v => v.status === 'Operante'); }
+  else if (filtroStatusAtivo === 'Baixada') { filtradas = filtradas.filter(v => v.status === 'Baixada'); }
 
   const container = document.getElementById('blocksContainer');
-  
   if (filtradas.length === 0) {
     container.innerHTML = '<div class="empty">Nenhuma viatura encontrada com os filtros atuais.</div>';
     return;
@@ -364,7 +334,6 @@ function renderBlocos() {
     if (!grupos[tipo]) grupos[tipo] = [];
     grupos[tipo].push(v);
   });
-
   const tiposOrdenados = Object.keys(grupos).sort((a, b) => a.localeCompare(b));
 
   let html = '';
@@ -372,19 +341,13 @@ function renderBlocos() {
     const items = grupos[tipo].sort((a, b) => 
       String(a.prefixo || '').localeCompare(String(b.prefixo || ''), undefined, { numeric: true, sensitivity: 'base' })
     );
-    
     html += `
       <details class="block" open>
         <summary class="block-header">
-          <div class="block-title">
-            ${tipo} 
-            <span class="block-count">${items.length} viaturas</span>
-          </div>
+          <div class="block-title">${tipo} <span class="block-count">${items.length} viaturas</span></div>
           <span class="block-toggle">▼</span>
         </summary>
-        <div class="block-content">
-          ${items.map(v => renderCard(v)).join('')}
-        </div>
+        <div class="block-content">${items.map(v => renderCard(v)).join('')}</div>
       </details>
     `;
   }
@@ -393,24 +356,14 @@ function renderBlocos() {
 
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
-  
-  const propText = v.propriedade === 'Locada' 
-    ? `Locada ${v.empresa ? `(${v.empresa})` : ''}`
-    : `Própria`;
-
+  const propText = v.propriedade === 'Locada' ? `Locada ${v.empresa ? `(${v.empresa})` : ''}` : `Própria`;
   const cardClass = isBaixada ? 'baixada' : '';
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
 
   const temResponsavel = v.responsavel && String(v.responsavel).trim() !== '';
-  const cargoTexto = (v.cargo && String(v.cargo).trim() !== '') 
-    ? String(v.cargo).trim() 
-    : 'Responsável';
-  
+  const cargoTexto = (v.cargo && String(v.cargo).trim() !== '') ? String(v.cargo).trim() : 'Responsável';
   const responsavelHtml = temResponsavel
-    ? `<div class="veh-responsavel">
-        <span class="resp-cargo">${cargoTexto}</span>
-        <span class="resp-nome">${v.responsavel}</span>
-      </div>`
+    ? `<div class="veh-responsavel"><span class="resp-cargo">${cargoTexto}</span><span class="resp-nome">${v.responsavel}</span></div>`
     : '';
 
   return `
@@ -440,23 +393,13 @@ function renderCard(v) {
   `;
 }
 
-// ============================================================
-// AÇÕES
-// ============================================================
 window.mudarFiltro = (u) => { filtroAtivo = u; renderTudo(); };
-
 window.mudarFiltroStatus = (status) => {
-  if (filtroStatusAtivo === status) {
-    filtroStatusAtivo = 'Total';
-  } else {
-    filtroStatusAtivo = status;
-  }
+  if (filtroStatusAtivo === status) { filtroStatusAtivo = 'Total'; } else { filtroStatusAtivo = status; }
   renderTudo();
 };
-
 document.getElementById('search').addEventListener('input', (e) => { termoBusca = e.target.value; renderBlocos(); });
 
-// Modal de Edição / Adição
 let editandoPrefixoOriginal = null;
 const modal = document.getElementById('actionModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -466,12 +409,8 @@ window.toggleEmpresa = () => {
   const prop = document.getElementById('fPropriedade').value;
   const labelEmpresa = document.getElementById('labelEmpresa');
   const inputEmpresa = document.getElementById('fEmpresa');
-  if (prop === 'Locada') {
-    labelEmpresa.style.display = 'flex';
-  } else {
-    labelEmpresa.style.display = 'none';
-    inputEmpresa.value = ''; 
-  }
+  if (prop === 'Locada') { labelEmpresa.style.display = 'flex'; }
+  else { labelEmpresa.style.display = 'none'; inputEmpresa.value = ''; }
 };
 
 function abrirModalNovo() {
@@ -562,7 +501,6 @@ document.getElementById('modalConfirm').onclick = () => {
     obs: document.getElementById('fObs').value.trim()
   };
   if (!dados.prefixo) return alert('O prefixo é obrigatório!');
-
   const isNew = editandoPrefixoOriginal === null;
   enviarParaPlanilha('save', { viatura: dados, isNew: isNew, oldPrefixo: editandoPrefixoOriginal });
   modal.style.display = 'none';
@@ -576,20 +514,10 @@ function alternarStatus(prefixo) {
 
 document.getElementById('addBtn').onclick = abrirModalNovo;
 
-// ============================================================
-// INICIALIZAÇÃO
-// ============================================================
-carregarDados().then(() => {
-  iniciarAutoRefresh();
-});
-
+carregarDados().then(() => { iniciarAutoRefresh(); });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    pararAutoRefresh();
-  } else {
-    carregarDados();
-    iniciarAutoRefresh();
-  }
+  if (document.hidden) { pararAutoRefresh(); }
+  else { carregarDados(); iniciarAutoRefresh(); }
 });
 </script>
 </body>
