@@ -122,12 +122,6 @@
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--border);white-space:nowrap;}
   .badge.operante{background:rgba(0,171,251,.15);color:var(--azul);border-color:var(--azul);}
   .badge.baixada{background:rgba(239,83,80,.15);color:var(--vermelho);border-color:var(--vermelho);}
-  
-  .badge.propria, .badge.locada {
-    background:transparent;border:none;color:var(--text-dim);padding:0;
-    font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
-  }
-  .badge.propria::before, .badge.locada::before {content:"— ";color:var(--text-faint);}
 
   .modal-overlay{position:fixed;inset:0;background:rgba(16,20,26,.85);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
   .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;width:100%;max-width:500px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto;}
@@ -193,17 +187,13 @@ let filtroAtivo = 'Todas';
 let filtroStatusAtivo = 'Operante'; 
 let termoBusca = '';
 let ultimaAtualizacao = null;
-let refreshTimer = null; // TIMER ÚNICO
+let refreshTimer = null;
 let segundosRestantes = AUTO_REFRESH_SECONDS;
 
-// ============================================================
-// CARREGAR DADOS
-// ============================================================
 async function carregarDados() {
   const modal = document.getElementById('actionModal');
   if (modal.style.display === 'flex') return;
 
-  // Feedback visual: ponto pisca em âmbar enquanto está sincronizando
   const dot = document.getElementById('statusDot');
   dot.classList.add('syncing');
 
@@ -241,20 +231,15 @@ async function enviarParaPlanilha(action, dados) {
   }
 }
 
-// ============================================================
-// AUTO-REFRESH (TIMER ÚNICO - CORRIGIDO)
-// ============================================================
 function iniciarAutoRefresh() {
   pararAutoRefresh();
   segundosRestantes = AUTO_REFRESH_SECONDS;
   atualizarIndicador();
-
-  // Um único timer: decrementa e, ao chegar em 0, dispara o refresh
   refreshTimer = setInterval(() => {
     segundosRestantes--;
     if (segundosRestantes <= 0) {
-      carregarDados(); // Dispara o refresh
-      segundosRestantes = AUTO_REFRESH_SECONDS; // Reinicia a contagem
+      carregarDados();
+      segundosRestantes = AUTO_REFRESH_SECONDS;
     }
     atualizarIndicador();
   }, 1000);
@@ -274,9 +259,6 @@ function atualizarIndicador() {
   text.innerText = `Atualizado às ${hora} • Próxima atualização em ${tempoFormatado}`;
 }
 
-// ============================================================
-// RENDERIZAÇÃO
-// ============================================================
 function renderTudo() {
   renderResumo();
   renderAbas();
@@ -366,9 +348,16 @@ function renderBlocos() {
 
 function renderCard(v) {
   const isBaixada = v.status === 'Baixada';
-  const propText = v.propriedade === 'Locada' ? `Locada ${v.empresa ? `(${v.empresa})` : ''}` : `Própria`;
   const cardClass = isBaixada ? 'baixada' : '';
   const realIndex = viaturas.findIndex(orig => orig.prefixo === v.prefixo);
+
+  // ✅ CORRIGIDO: mostra exatamente o valor da planilha
+  const propriedadeTexto = v.propriedade && String(v.propriedade).trim() !== '' 
+    ? String(v.propriedade).trim() 
+    : '—';
+  const empresaTexto = v.empresa && String(v.empresa).trim() !== '' 
+    ? ` <span style="color:var(--text-dim);">(${v.empresa})</span>` 
+    : '';
 
   const temResponsavel = v.responsavel && String(v.responsavel).trim() !== '';
   const cargoTexto = (v.cargo && String(v.cargo).trim() !== '') ? String(v.cargo).trim() : 'Responsável';
@@ -387,7 +376,7 @@ function renderCard(v) {
       <div class="veh-info">
         <div><span class="label">Condutor:</span> ${v.condutor || 'Não informado'}</div>
         <div><span class="label">Contato:</span> ${v.contato || '—'}</div>
-        <div><span class="label">Propriedade:</span> <span class="${v.propriedade === 'Locada' ? 'badge locada' : 'badge propria'}">${propText}</span></div>
+        <div><span class="label">Propriedade:</span> ${propriedadeTexto}${empresaTexto}</div>
         ${v.cartao ? `<div><span class="label">Cartão Abast.:</span> ${v.cartao}</div>` : ''}
       </div>
       ${v.obs ? `<div class="veh-obs">Obs: ${v.obs}</div>` : ''}
@@ -442,9 +431,10 @@ function abrirModalNovo() {
       <option value="Supervisor">Supervisor</option>
     </select></label>
     <label>Responsável <input type="text" id="fResponsavel" autocomplete="off" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
-    <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
-      <option value="Própria">Própria</option><option value="Locada">Locada</option>
-    </select></label>
+    <label>Propriedade <input type="text" id="fPropriedade" autocomplete="off" placeholder="Ex: Própria, Locada, Cedida pelo TRE" list="listaPropriedade" onchange="toggleEmpresa()"></label>
+    <datalist id="listaPropriedade">
+      <option value="Própria"><option value="Locada"><option value="Cedida pelo TRE">
+    </datalist>
     <label id="labelEmpresa" style="display:none;">Empresa (Locada) <input type="text" id="fEmpresa" autocomplete="off" placeholder="Nome da empresa"></label>
     <label>Cartão de Abastecimento <input type="text" id="fCartao" autocomplete="off" placeholder="Opcional"></label>
     <label>Status <select id="fStatus"><option value="Operante">Operante</option><option value="Baixada">Baixada</option></select></label>
@@ -475,10 +465,10 @@ function abrirModalEditar(index) {
       <option value="Supervisor" ${v.cargo === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
     </select></label>
     <label>Responsável <input type="text" id="fResponsavel" autocomplete="off" value="${v.responsavel || ''}" placeholder="Ex: MAJ QOBM Luiz Mario"></label>
-    <label>Propriedade <select id="fPropriedade" onchange="toggleEmpresa()">
-      <option value="Própria" ${v.propriedade === 'Própria' ? 'selected' : ''}>Própria</option>
-      <option value="Locada" ${v.propriedade === 'Locada' ? 'selected' : ''}>Locada</option>
-    </select></label>
+    <label>Propriedade <input type="text" id="fPropriedade" autocomplete="off" value="${v.propriedade || ''}" placeholder="Ex: Própria, Locada, Cedida pelo TRE" list="listaPropriedade" onchange="toggleEmpresa()"></label>
+    <datalist id="listaPropriedade">
+      <option value="Própria"><option value="Locada"><option value="Cedida pelo TRE">
+    </datalist>
     <label id="labelEmpresa" style="${v.propriedade === 'Locada' ? 'display:flex;' : 'display:none;'}">Empresa (Locada) <input type="text" id="fEmpresa" autocomplete="off" value="${v.empresa || ''}" placeholder="Nome da empresa"></label>
     <label>Cartão de Abastecimento <input type="text" id="fCartao" autocomplete="off" value="${v.cartao || ''}" placeholder="Opcional"></label>
     <label>Status <select id="fStatus">
@@ -502,7 +492,7 @@ document.getElementById('modalConfirm').onclick = () => {
     unidade: document.getElementById('fUnidade').value.trim(),
     cargo: document.getElementById('fCargo').value,
     responsavel: document.getElementById('fResponsavel').value.trim(),
-    propriedade: document.getElementById('fPropriedade').value,
+    propriedade: document.getElementById('fPropriedade').value.trim(),
     empresa: document.getElementById('fEmpresa').value.trim(),
     cartao: document.getElementById('fCartao').value.trim(),
     status: document.getElementById('fStatus').value,
@@ -524,17 +514,10 @@ function alternarStatus(prefixo) {
 
 document.getElementById('addBtn').onclick = abrirModalNovo;
 
-// ============================================================
-// INICIALIZAÇÃO
-// ============================================================
 carregarDados().then(() => { iniciarAutoRefresh(); });
-
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    pararAutoRefresh();
-  } else {
-    carregarDados().then(() => { iniciarAutoRefresh(); });
-  }
+  if (document.hidden) { pararAutoRefresh(); }
+  else { carregarDados().then(() => { iniciarAutoRefresh(); }); }
 });
 </script>
 </body>
